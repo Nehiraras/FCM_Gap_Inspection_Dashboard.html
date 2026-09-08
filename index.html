@@ -112,6 +112,14 @@ tr:hover td { background: #fafafa; }
 .success-box { background: #e8f9ef; border: 1px solid #b2dfdb; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; line-height: 1.6; }
 .success-box strong { color: #1c8f3a; }
 
+/* NODE SWITCHER */
+.node-switcher { background: #1d1d1f; display: flex; gap: 8px; padding: 12px 32px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.node-btn { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 24px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); cursor: pointer; letter-spacing: -0.1px; transition: all 0.2s; }
+.node-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); }
+.node-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+.node-content { display: none; }
+.node-content.active { display: block; }
+
 /* FOOTER */
 footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px; }</style>
 </head>
@@ -120,8 +128,8 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
 <header>
   <div class="hdr-top">
     <div>
-      <h1>X3587 FCM Flex Lift-Up Gap — Inspection Dashboard</h1>
-      <p>PCBA NFC Module | 100% Screening: CCD Visual → OMM Dimensional Confirmation</p>
+      <h1>X3587 D19X — Multi-Node Inspection Dashboard</h1>
+      <p>PCBA NFC Module → Display Module | 100% Screening: CCD Visual → OMM Dimensional Confirmation</p>
     </div>
     <div class="hdr-badges">
       <span class="hdr-badge">Last Updated: Sep 7, 2026</span>
@@ -141,6 +149,13 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
   <div class="legend-item"><span class="dot dot-red"></span>OMM Confirmed NG (True Fail — Gap &gt; 50 µm)</div>
   <div class="legend-item"><span class="dot dot-blue"></span>CCD B- Rate (%)</div>
 </div>
+
+<div class="node-switcher">
+  <button class="node-btn active" onclick="switchNode('pcba')">PCBA Node Inspection</button>
+  <button class="node-btn" onclick="switchNode('lgd')">Display Node Inspection</button>
+</div>
+
+<div id="node-pcba" class="node-content active">
 
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('avary')">Avary</button>
@@ -320,7 +335,88 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
   </div>
 </div>
 
-<footer>X3587 FCM Lift-Up Gap Inspection Dashboard · Generated Sep 7, 2026 · USL: 50 µm · Vendors: Avary, ICT (Luxshare)</footer>
+</div><!-- end node-pcba -->
+
+<!-- ═══════════════════ DISPLAY NODE — LGD ═══════════════════ -->
+<div id="node-lgd" class="node-content">
+
+  <div class="kpi-grid" style="padding:24px 32px 0">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">D191 Total Inspected</div>
+      <div class="kpi-value">868,597</div>
+      <div class="kpi-sub">Cumulative 8/18–9/6</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-label">D191 CCD B- (Flagged)</div>
+      <div class="kpi-value">311</div>
+      <div class="kpi-rate" style="color:var(--amber)">0.036% CCD Fail Rate</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">D191 OMM Confirmed NG</div>
+      <div class="kpi-value">4</div>
+      <div class="kpi-rate" style="color:var(--green)">0.00046% True NG Rate</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">D192 Total Inspected</div>
+      <div class="kpi-value">862,755</div>
+      <div class="kpi-sub">Cumulative 8/18–9/6</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-label">D192 CCD B- (Flagged)</div>
+      <div class="kpi-value">1,150</div>
+      <div class="kpi-rate" style="color:var(--amber)">0.133% CCD Fail Rate</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">D192 OMM Confirmed NG</div>
+      <div class="kpi-value">5</div>
+      <div class="kpi-rate" style="color:var(--green)">0.00058% True NG Rate</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Combined Inspected</div>
+      <div class="kpi-value" style="font-size:22px">1,731,352</div>
+      <div class="kpi-sub">D191 + D192 total</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">OMM Confirm Rate</div>
+      <div class="kpi-value" style="font-size:22px;color:#1c8f3a">0.62%</div>
+      <div class="kpi-sub">of CCD B- confirmed NG</div>
+    </div>
+  </div>
+
+  <div style="padding:0 32px">
+    <div class="info-box" style="margin-top:20px">
+      <strong>Display Node Inspection Flow (LGD — Hotbar Delamination OQC):</strong> After PCBA node assembly, modules flow to LGD for Hotbar bonding. 100% CCD visual screening detects Hotbar delamination (Grade B- = defective bond). Flagged units proceed to OMM for dimensional confirmation. D191 shows a consistently low CCD rate (~0.04%). D192 shows elevated flags on some days (peak 0.52% on 8/22), with only 5 OMM-confirmed true defects across the full run — confirming a very low true defect rate (&lt;0.001%).
+    </div>
+
+    <div class="section-title">Daily CCD B- Rate — LGD D191 &amp; D192 <span>(8/18–9/6)</span></div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>D191 — Daily CCD B- Rate (%) <small>· OMM True NG: 4 total</small></h3>
+        <div class="chart-wrap"><canvas id="lgd-d191-rate"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>D192 — Daily CCD B- Rate (%) <small>· OMM True NG: 5 total</small></h3>
+        <div class="chart-wrap"><canvas id="lgd-d192-rate"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:16px">
+      <h3>Daily Inspection Volume — D191 &amp; D192 <small>(units per day)</small></h3>
+      <div class="chart-wrap" style="height:220px"><canvas id="lgd-volume"></canvas></div>
+    </div>
+
+    <div class="section-title">Daily Data Table — LGD</div>
+    <div class="table-wrap" style="margin-bottom:48px">
+      <div class="table-controls">
+        <h3>LGD Hotbar Delamination OQC Data</h3>
+        <div style="font-size:11px;color:var(--text2)">Vendor: LGD · All OMM True Rejects shown</div>
+      </div>
+      <div class="scroll-table">
+        <table id="lgd-table"></table>
+      </div>
+    </div>
+  </div>
+</div><!-- end node-lgd -->X3587 FCM Lift-Up Gap Inspection Dashboard · Generated Sep 7, 2026 · USL: 50 µm · Vendors: Avary, ICT (Luxshare)</footer>
 
 <script>
 /* =====================================================================
@@ -872,6 +968,162 @@ function switchTab(id){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['avary','ict'][i]===id));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id==='tab-'+id));
 }
+
+function switchNode(id){
+  document.querySelectorAll('.node-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(id==='pcba'?'pcba':'display')));
+  document.querySelectorAll('.node-content').forEach(c=>c.classList.toggle('active',c.id==='node-'+id));
+}
+
+/* =====================================================================
+   LGD DISPLAY NODE DATA
+   ===================================================================== */
+const lgdD191 = [
+  {date:"08/18",input:37114,  ccd:9,   omm:0},
+  {date:"08/19",input:35938,  ccd:29,  omm:0},
+  {date:"08/20",input:45633,  ccd:15,  omm:3},
+  {date:"08/21",input:47636,  ccd:12,  omm:1},
+  {date:"08/22",input:40854,  ccd:14,  omm:0},
+  {date:"08/23",input:44439,  ccd:43,  omm:0},
+  {date:"08/24",input:45176,  ccd:29,  omm:0},
+  {date:"08/25",input:49302,  ccd:41,  omm:0},
+  {date:"08/26",input:41450,  ccd:11,  omm:0},
+  {date:"08/27",input:49446,  ccd:4,   omm:0},
+  {date:"08/28",input:44150,  ccd:21,  omm:0},
+  {date:"08/29",input:45790,  ccd:15,  omm:0},
+  {date:"08/30",input:50916,  ccd:14,  omm:0},
+  {date:"08/31",input:48204,  ccd:13,  omm:0},
+  {date:"09/01",input:18536,  ccd:8,   omm:0},
+  {date:"09/02",input:26662,  ccd:19,  omm:0},
+  {date:"09/03",input:44453,  ccd:14,  omm:0},
+  {date:"09/04",input:50799,  ccd:0,   omm:0},
+  {date:"09/05",input:50034,  ccd:0,   omm:0},
+  {date:"09/06",input:52065,  ccd:0,   omm:0},
+];
+const lgdD192 = [
+  {date:"08/18",input:46903,  ccd:38,  omm:0},
+  {date:"08/19",input:51154,  ccd:48,  omm:0},
+  {date:"08/20",input:51979,  ccd:69,  omm:0},
+  {date:"08/21",input:51344,  ccd:78,  omm:0},
+  {date:"08/22",input:52499,  ccd:275, omm:0},
+  {date:"08/23",input:50591,  ccd:61,  omm:0},
+  {date:"08/24",input:46541,  ccd:125, omm:0},
+  {date:"08/25",input:47591,  ccd:83,  omm:0},
+  {date:"08/26",input:51895,  ccd:39,  omm:3},
+  {date:"08/27",input:52691,  ccd:1,   omm:0},
+  {date:"08/28",input:46372,  ccd:3,   omm:0},
+  {date:"08/29",input:44408,  ccd:45,  omm:2},
+  {date:"08/30",input:32141,  ccd:42,  omm:0},
+  {date:"08/31",input:23014,  ccd:144, omm:0},
+  {date:"09/01",input:11288,  ccd:16,  omm:0},
+  {date:"09/02",input:25958,  ccd:47,  omm:0},
+  {date:"09/03",input:49236,  ccd:36,  omm:0},
+  {date:"09/04",input:49359,  ccd:0,   omm:0},
+  {date:"09/05",input:49266,  ccd:0,   omm:0},
+  {date:"09/06",input:28525,  ccd:0,   omm:0},
+];
+
+/* LGD CHARTS */
+function lgdRate(arr){ return arr.map(d=>d.input>0?(d.ccd/d.input*100):0); }
+
+new Chart(document.getElementById('lgd-d191-rate'),{
+  type:'line',
+  data:{
+    labels: lgdD191.map(d=>d.date),
+    datasets:[
+      {label:'D191 CCD B- Rate', data:lgdRate(lgdD191),
+       borderColor:CC.amber, backgroundColor:CC.amberA,
+       borderWidth:2.5, pointRadius:4, pointBackgroundColor:lgdD191.map(d=>d.omm>0?CC.red:CC.amber),
+       tension:0.3, fill:true},
+    ]
+  },
+  options:{...baseOpts('CCD B- Rate (%)',0.15),
+    plugins:{
+      legend:{position:'top',labels:{boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{label:ctx=>{
+        const d=lgdD191[ctx.dataIndex];
+        return [`CCD B- Rate: ${ctx.parsed.y.toFixed(4)}%`, `CCD Count: ${d.ccd}`, `OMM NG: ${d.omm}`];
+      }}}
+    }
+  }
+});
+
+new Chart(document.getElementById('lgd-d192-rate'),{
+  type:'line',
+  data:{
+    labels: lgdD192.map(d=>d.date),
+    datasets:[
+      {label:'D192 CCD B- Rate', data:lgdRate(lgdD192),
+       borderColor:CC.indigo, backgroundColor:CC.indigoA,
+       borderWidth:2.5, pointRadius:4, pointBackgroundColor:lgdD192.map(d=>d.omm>0?CC.red:CC.indigo),
+       tension:0.3, fill:true},
+    ]
+  },
+  options:{...baseOpts('CCD B- Rate (%)',0.65),
+    plugins:{
+      legend:{position:'top',labels:{boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{label:ctx=>{
+        const d=lgdD192[ctx.dataIndex];
+        return [`CCD B- Rate: ${ctx.parsed.y.toFixed(4)}%`, `CCD Count: ${d.ccd}`, `OMM NG: ${d.omm}`];
+      }}}
+    }
+  }
+});
+
+new Chart(document.getElementById('lgd-volume'),{
+  type:'bar',
+  data:{
+    labels: lgdD191.map(d=>d.date),
+    datasets:[
+      {label:'D191 Input', data:lgdD191.map(d=>d.input),
+       backgroundColor:'rgba(255,159,10,0.65)', stack:'d191', borderRadius:2},
+      {label:'D192 Input', data:lgdD191.map((d,i)=>lgdD192[i]?lgdD192[i].input:null),
+       backgroundColor:'rgba(94,92,230,0.55)', stack:'d192', borderRadius:2},
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+    scales:{
+      x:{ticks:{font:{size:10},maxRotation:45,minRotation:30},grid:{color:'rgba(0,0,0,0.04)'}},
+      y:{beginAtZero:true,title:{display:true,text:'Daily Input (units)',font:{size:10},color:'#636366'},
+         ticks:{font:{size:10},callback:v=>(v/1000).toFixed(0)+'k'},grid:{color:'rgba(0,0,0,0.06)'}}
+    }
+  }
+});
+
+/* LGD TABLE */
+(function buildLgdTable(){
+  const hdr=`<thead><tr>
+    <th>Date</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">D191</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">D192</th>
+  </tr><tr>
+    <th></th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>CCD B-</th><th>CCD%</th><th>OMM NG</th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>CCD B-</th><th>CCD%</th><th>OMM NG</th>
+  </tr></thead>`;
+  let rows='';
+  lgdD191.forEach((d1,i)=>{
+    const d2=lgdD192[i]||{input:0,ccd:0,omm:0};
+    const r1=(d1.input>0?(d1.ccd/d1.input*100):0).toFixed(4);
+    const r2=(d2.input>0?(d2.ccd/d2.input*100):0).toFixed(4);
+    const ommMark1 = d1.omm>0?`<span style="color:var(--red);font-weight:700">${d1.omm}</span>`:d1.omm;
+    const ommMark2 = d2.omm>0?`<span style="color:var(--red);font-weight:700">${d2.omm}</span>`:d2.omm;
+    rows+=`<tr>
+      <td><strong>${d1.date}</strong></td>
+      <td style="border-left:2px solid #f0f0f0">${d1.input.toLocaleString()}</td>
+      <td>${d1.ccd}</td>
+      <td class="${rateClass(r1)}">${r1}%</td>
+      <td>${ommMark1}</td>
+      <td style="border-left:2px solid #f0f0f0">${d2.input.toLocaleString()}</td>
+      <td>${d2.ccd}</td>
+      <td class="${rateClass(r2)}">${r2}%</td>
+      <td>${ommMark2}</td>
+    </tr>`;
+  });
+  document.getElementById('lgd-table').innerHTML=hdr+'<tbody>'+rows+'</tbody>';
+})();
 
 function avaryView(v){
   document.getElementById('avary-daily-tbl').style.display = v==='daily'?'':'none';
