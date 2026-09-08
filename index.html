@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FCM Lift-Up Gap Inspection Dashboard — X3587</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --text: #1c1c1e;
+  --text2: #636366;
+  --border: #d1d1d6;
+  --blue: #0071e3;
+  --green: #30d158;
+  --amber: #ff9f0a;
+  --red: #ff3b30;
+  --indigo: #5e5ce6;
+  --shadow: 0 1px 8px rgba(0,0,0,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* HEADER */
+header { background: linear-gradient(135deg, #1d1d1f 0%, #2c2c2e 100%); color: #fff; padding: 24px 32px; }
+.hdr-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+header p { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+.hdr-badge { background: rgba(255,255,255,0.1); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: rgba(255,255,255,0.85); white-space: nowrap; }
+.hdr-badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+.usl-note { margin-top: 14px; display: flex; gap: 20px; flex-wrap: wrap; }
+.usl-chip { font-size: 12px; color: rgba(255,255,255,0.75); background: rgba(255,159,10,0.2); border: 1px solid rgba(255,159,10,0.4); border-radius: 6px; padding: 4px 10px; }
+
+/* LEGEND */
+.legend-bar { background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 32px; display: flex; gap: 24px; flex-wrap: wrap; }
+.legend-item { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot-green { background: var(--green); }
+.dot-amber { background: var(--amber); }
+.dot-red { background: var(--red); }
+.dot-blue { background: var(--blue); }
+
+/* TABS */
+.tabs { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; gap: 0; }
+.tab-btn { background: none; border: none; border-bottom: 3px solid transparent; padding: 14px 24px; font-size: 14px; font-weight: 600; color: var(--text2); cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+.tab-content { display: none; padding: 24px 32px 48px; }
+.tab-content.active { display: block; }
+
+/* KPI CARDS */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.kpi-card { background: var(--card); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); }
+.kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); margin-bottom: 6px; }
+.kpi-value { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+.kpi-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+.kpi-rate { font-size: 13px; font-weight: 600; margin-top: 2px; }
+.kpi-green .kpi-value { color: #1c8f3a; }
+.kpi-amber .kpi-value { color: #c07000; }
+.kpi-red .kpi-value { color: #c0392b; }
+.kpi-blue .kpi-value { color: var(--blue); }
+
+/* SECTION TITLES */
+.section-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; margin-top: 28px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.section-title span { font-size: 12px; font-weight: 400; color: var(--text2); }
+
+/* CHARTS */
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.chart-grid-3 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
+.chart-card { background: var(--card); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+.chart-card h3 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+.chart-card h3 small { font-weight: 400; color: var(--text2); }
+.chart-wrap { position: relative; height: 240px; }
+@media (max-width: 900px) { .chart-grid { grid-template-columns: 1fr; } }
+
+/* PHASE BANNER */
+.phase-banner { background: var(--card); border-radius: 14px; padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow); display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
+.phase-item { font-size: 12px; }
+.phase-item strong { display: block; font-size: 13px; font-weight: 700; }
+.phase-sep { width: 1px; background: var(--border); height: 40px; }
+
+/* TABLES */
+.table-wrap { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }
+.table-controls { padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.table-controls h3 { font-size: 14px; font-weight: 600; }
+.toggle-group { display: flex; background: var(--bg); border-radius: 8px; padding: 3px; gap: 2px; }
+.toggle-btn { background: none; border: none; border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text2); }
+.toggle-btn.active { background: var(--card); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+.scroll-table { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { background: #f9f9fb; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; font-size: 10.5px; padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th:first-child, th:nth-child(2) { text-align: left; }
+td { padding: 7px 12px; text-align: right; border-bottom: 1px solid #f0f0f0; color: var(--text); }
+td:first-child, td:nth-child(2) { text-align: left; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafafa; }
+.tr-day { background: #fefeff; }
+.tr-night { background: #f9f9fc; }
+.tr-daily { font-weight: 500; }
+.rate-ok { color: #1a7f37; }
+.rate-warn { color: #c07000; }
+.rate-bad { color: #c0392b; font-weight: 700; }
+.rate-zero { color: var(--green); font-weight: 700; }
+.badge-d { background: #e8f4fd; color: #1864ab; border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: 600; }
+.badge-n { background: #f0e8fd; color: #5f3dc4; border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: 600; }
+.badge-sop { background: #fff3e0; color: #c07000; border-radius: 4px; padding: 1px 5px; font-size: 9px; font-weight: 700; margin-left: 4px; }
+
+/* INFO BOX */
+.info-box { background: #eaf4ff; border: 1px solid #bee3f8; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; line-height: 1.6; }
+.info-box strong { color: var(--blue); }
+.success-box { background: #e8f9ef; border: 1px solid #b2dfdb; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; line-height: 1.6; }
+.success-box strong { color: #1c8f3a; }
+
+/* FOOTER */
+footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px; }</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-top">
+    <div>
+      <h1>X3587 FCM Flex Lift-Up Gap — Inspection Dashboard</h1>
+      <p>PCBA NFC Module | 100% Screening: CCD Visual → OMM Dimensional Confirmation</p>
+    </div>
+    <div class="hdr-badges">
+      <span class="hdr-badge">Last Updated: Aug 31, 2026</span>
+      <span class="hdr-badge">USL: 50 µm (Gap ≥ 50 µm = B- Grade = NG)</span>
+    </div>
+  </div>
+  <div class="usl-note">
+    <span class="usl-chip">Grade A / B+ → PASS (Gap &lt; 50 µm)</span>
+    <span class="usl-chip">Grade B- → CCD Flagged → Sent to OMM Confirmation</span>
+    <span class="usl-chip">OMM Confirmed NG → True Defect (Gap &gt; 50 µm)</span>
+  </div>
+</header>
+
+<div class="legend-bar">
+  <div class="legend-item"><span class="dot dot-green"></span>Grade B+ / Visual OK (Pass)</div>
+  <div class="legend-item"><span class="dot dot-amber"></span>Grade B- / CCD Flagged (Marginal — triggered for OMM)</div>
+  <div class="legend-item"><span class="dot dot-red"></span>OMM Confirmed NG (True Fail — Gap &gt; 50 µm)</div>
+  <div class="legend-item"><span class="dot dot-blue"></span>CCD B- Rate (%)</div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('avary')">Avary</button>
+  <button class="tab-btn" onclick="switchTab('ict')">ICT (Luxshare)</button>
+</div>
+
+<!-- ═══════════════════════════════ AVARY TAB ═══════════════════════════════ -->
+<div id="tab-avary" class="tab-content active">
+
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">SM Total Inspected</div>
+      <div class="kpi-value">643,058</div>
+      <div class="kpi-sub">Cumulative as of 8/31</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-label">SM CCD B- (Flagged)</div>
+      <div class="kpi-value">2,362</div>
+      <div class="kpi-rate" style="color:var(--amber)">0.37% CCD Fail Rate</div>
+    </div>
+    <div class="kpi-card kpi-red">
+      <div class="kpi-label">SM OMM Confirmed NG</div>
+      <div class="kpi-value">571</div>
+      <div class="kpi-rate" style="color:var(--red)">0.09% True NG Rate</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">LG Total Inspected</div>
+      <div class="kpi-value">730,200</div>
+      <div class="kpi-sub">Cumulative as of 8/31</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-label">LG CCD B- (Flagged)</div>
+      <div class="kpi-value">2,013</div>
+      <div class="kpi-rate" style="color:var(--amber)">0.28% CCD Fail Rate</div>
+    </div>
+    <div class="kpi-card kpi-red">
+      <div class="kpi-label">LG OMM Confirmed NG</div>
+      <div class="kpi-value">571</div>
+      <div class="kpi-rate" style="color:var(--red)">0.08% True NG Rate</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Combined Inspected</div>
+      <div class="kpi-value" style="font-size:22px">1,373,258</div>
+      <div class="kpi-sub">SM + LG total</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">OMM Confirm Rate</div>
+      <div class="kpi-value" style="font-size:22px">~26%</div>
+      <div class="kpi-sub">of CCD B- confirmed NG</div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>Inspection Flow:</strong> All input PCBAs receive 100% CCD visual screening. Parts flagged as <strong>Grade B-</strong> (gap ≥ 50 µm threshold) are re-inspected via OMM for precise measurement. OMM confirms whether the gap truly exceeds 50 µm (USL). On average, ~26% of CCD B- flags are confirmed as true NG; the remainder are false rejects recovered as good parts.
+  </div>
+
+  <div class="section-title">Daily CCD B- Fail Rate — X3587 SM & LG <span>(7/28–8/31, D+N Combined)</span></div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>X3587 SM — CCD B- Rate vs OMM True NG Rate <small>(% of daily input)</small></h3>
+      <div class="chart-wrap"><canvas id="avary-sm-rate"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>X3587 LG — CCD B- Rate vs OMM True NG Rate <small>(% of daily input)</small></h3>
+      <div class="chart-wrap"><canvas id="avary-lg-rate"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:16px">
+    <h3>Daily Inspection Volume — B- Count & OMM Confirmed NG <small>(SM + LG Combined)</small></h3>
+    <div class="chart-wrap" style="height:260px"><canvas id="avary-volume"></canvas></div>
+  </div>
+
+  <div class="section-title">Shift-Level Detail Data <span>(Day / Night per date)</span></div>
+
+  <div class="table-wrap">
+    <div class="table-controls">
+      <h3>Avary Inspection Data</h3>
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="avary-daily-btn" onclick="avaryView('daily')">Daily Summary</button>
+        <button class="toggle-btn" id="avary-shift-btn" onclick="avaryView('shift')">D/N Shift Detail</button>
+      </div>
+    </div>
+    <div class="scroll-table">
+      <table id="avary-daily-tbl"></table>
+      <table id="avary-shift-tbl" style="display:none"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ICT TAB ═══════════════════════════════ -->
+<div id="tab-ict" class="tab-content">
+
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">SM Total Inspected</div>
+      <div class="kpi-value">1,216,156</div>
+      <div class="kpi-sub">Cumulative 7/7–8/31</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-label">SM CCD B- (Flagged)</div>
+      <div class="kpi-value">7,671</div>
+      <div class="kpi-rate" style="color:var(--amber)">0.63% overall (0.84% post-SOP)</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">SM OMM True NG</div>
+      <div class="kpi-value">0</div>
+      <div class="kpi-rate" style="color:var(--green)">0.00% — All false rejects</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">LG Total Inspected</div>
+      <div class="kpi-value">1,342,859</div>
+      <div class="kpi-sub">Cumulative 7/6–8/31</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-label">LG CCD B- (Flagged)</div>
+      <div class="kpi-value">8,876</div>
+      <div class="kpi-rate" style="color:var(--amber)">0.66% overall (0.85% post-SOP)</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">LG OMM True NG</div>
+      <div class="kpi-value">0</div>
+      <div class="kpi-rate" style="color:var(--green)">0.00% — All false rejects</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Combined Inspected</div>
+      <div class="kpi-value" style="font-size:22px">2.56M+</div>
+      <div class="kpi-sub">SM + LG total</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">True Defect Rate</div>
+      <div class="kpi-value" style="font-size:22px;color:#1c8f3a">0.00%</div>
+      <div class="kpi-sub">Zero confirmed NGs</div>
+    </div>
+  </div>
+
+  <div class="success-box">
+    <strong>Zero True Defects Across 2.56M+ Combined Units.</strong> All CCD B- flags (Visual Rejects) were confirmed as <strong>False Rejects</strong> by OMM — parts are within spec. A step-change in CCD B- rate (~0.20% → ~0.85%) occurred around <strong>7/28–7/30</strong> following an <strong>Enhanced SOP Implementation</strong> for tighter visual inspection. This reflects a change in sensitivity, not a product quality issue.
+  </div>
+
+  <div class="phase-banner">
+    <div class="phase-item"><strong style="color:var(--text2)">Phase 1: Ramp-Up</strong>7/6–7/29 · CCD B- Rate: ~0.19–0.26%</div>
+    <div class="phase-sep"></div>
+    <div class="phase-item"><strong style="color:var(--amber)">Enhanced SOP Implemented</strong>~7/28–7/30 · Step-change in CCD sensitivity</div>
+    <div class="phase-sep"></div>
+    <div class="phase-item"><strong style="color:var(--blue)">Phase 2: Post-SOP</strong>7/30–present · CCD B- Rate: ~0.80–0.93%</div>
+    <div class="phase-sep"></div>
+    <div class="phase-item"><strong style="color:var(--green)">OMM True NG</strong>0.00% throughout both phases</div>
+  </div>
+
+  <div class="section-title">Daily CCD B- Rate — ICT SM & LG <span>(7/6–8/31)</span></div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>X3587 SM — Daily CCD B- Rate (%) <small>· OMM True NG = 0% throughout</small></h3>
+      <div class="chart-wrap"><canvas id="ict-sm-rate"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>X3587 LG — Daily CCD B- Rate (%) <small>· OMM True NG = 0% throughout</small></h3>
+      <div class="chart-wrap"><canvas id="ict-lg-rate"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:16px">
+    <h3>Daily Inspection Volume — SM & LG <small>(units per day)</small></h3>
+    <div class="chart-wrap" style="height:220px"><canvas id="ict-volume"></canvas></div>
+  </div>
+
+  <div class="section-title">Daily Data Table — ICT</div>
+  <div class="table-wrap">
+    <div class="table-controls">
+      <h3>ICT Daily Inspection Data</h3>
+      <div style="font-size:11px;color:var(--text2)">All OMM True Rejects = 0 · 100% Final Yield</div>
+    </div>
+    <div class="scroll-table">
+      <table id="ict-table"></table>
+    </div>
+  </div>
+</div>
+
+<footer>X3587 FCM Lift-Up Gap Inspection Dashboard · Generated Aug 31, 2026 · USL: 50 µm · Vendors: Avary, ICT (Luxshare)</footer>
+
+<script>
+/* =====================================================================
+   DATA SECTION — Update these arrays when new daily reports arrive
+   ===================================================================== */
+
+// AVARY — Shift-level data (D = Day shift, N = Night shift)
+// Fields: date, shift, smIn, smB, smO, lgIn, lgB, lgO
+// smIn=SM input, smB=SM CCD B-, smO=SM OMM NG, lg*=Large equivalent
+const avaryShifts = [
+  {date:"7/28",  s:"D", smIn:10000,smB:96,  smO:2,  lgIn:9400, lgB:55, lgO:7 },
+  {date:"7/28",  s:"N", smIn:10000,smB:58,  smO:8,  lgIn:10000,lgB:32, lgO:6 },
+  {date:"7/29",  s:"D", smIn:10000,smB:5,   smO:4,  lgIn:10000,lgB:21, lgO:2 },
+  {date:"7/29",  s:"N", smIn:10000,smB:14,  smO:5,  lgIn:10000,lgB:37, lgO:8 },
+  {date:"7/30",  s:"D", smIn:10000,smB:9,   smO:3,  lgIn:9000, lgB:15, lgO:4 },
+  {date:"7/30",  s:"N", smIn:10000,smB:37,  smO:3,  lgIn:10000,lgB:17, lgO:7 },
+  {date:"7/31",  s:"D", smIn:10000,smB:11,  smO:4,  lgIn:10000,lgB:18, lgO:6 },
+  {date:"7/31",  s:"N", smIn:10000,smB:6,   smO:3,  lgIn:10000,lgB:35, lgO:8 },
+  {date:"8/1",   s:"D", smIn:12000,smB:44,  smO:8,  lgIn:12000,lgB:42, lgO:6 },
+  {date:"8/1",   s:"N", smIn:10000,smB:65,  smO:10, lgIn:10000,lgB:19, lgO:3 },
+  {date:"8/2",   s:"D", smIn:11000,smB:31,  smO:5,  lgIn:12000,lgB:14, lgO:4 },
+  {date:"8/2",   s:"N", smIn:9000, smB:37,  smO:7,  lgIn:9000, lgB:28, lgO:9 },
+  {date:"8/3",   s:"D", smIn:10000,smB:12,  smO:6,  lgIn:10000,lgB:23, lgO:11},
+  {date:"8/3",   s:"N", smIn:11000,smB:19,  smO:5,  lgIn:11000,lgB:33, lgO:6 },
+  {date:"8/4",   s:"D", smIn:9600, smB:37,  smO:8,  lgIn:12000,lgB:32, lgO:7 },
+  {date:"8/4",   s:"N", smIn:11000,smB:25,  smO:7,  lgIn:10000,lgB:24, lgO:7 },
+  {date:"8/5",   s:"D", smIn:9000, smB:17,  smO:6,  lgIn:12000,lgB:29, lgO:9 },
+  {date:"8/5",   s:"N", smIn:12000,smB:53,  smO:12, lgIn:11000,lgB:48, lgO:11},
+  {date:"8/6",   s:"D", smIn:10000,smB:26,  smO:5,  lgIn:10000,lgB:38, lgO:8 },
+  {date:"8/6",   s:"N", smIn:12000,smB:9,   smO:1,  lgIn:11000,lgB:26, lgO:6 },
+  {date:"8/7",   s:"D", smIn:11000,smB:56,  smO:12, lgIn:11000,lgB:13, lgO:3 },
+  {date:"8/7",   s:"N", smIn:11000,smB:26,  smO:8,  lgIn:11000,lgB:41, lgO:10},
+  {date:"8/8",   s:"D", smIn:11000,smB:118, smO:13, lgIn:11000,lgB:22, lgO:8 },
+  {date:"8/8",   s:"N", smIn:11000,smB:74,  smO:10, lgIn:11000,lgB:18, lgO:8 },
+  {date:"8/9",   s:"D", smIn:11000,smB:18,  smO:6,  lgIn:11000,lgB:9,  lgO:4 },
+  {date:"8/9",   s:"N", smIn:12000,smB:59,  smO:9,  lgIn:11000,lgB:12, lgO:4 },
+  {date:"8/10",  s:"D", smIn:11000,smB:44,  smO:14, lgIn:10000,lgB:15, lgO:9 },
+  {date:"8/10",  s:"N", smIn:12000,smB:42,  smO:8,  lgIn:10000,lgB:13, lgO:7 },
+  {date:"8/11",  s:"D", smIn:10000,smB:50,  smO:15, lgIn:10000,lgB:18, lgO:7 },
+  {date:"8/11",  s:"N", smIn:7000, smB:19,  smO:7,  lgIn:11000,lgB:12, lgO:5 },
+  {date:"8/12",  s:"D", smIn:10000,smB:27,  smO:9,  lgIn:10000,lgB:93, lgO:13},
+  {date:"8/12",  s:"N", smIn:12000,smB:38,  smO:8,  lgIn:10000,lgB:23, lgO:11},
+  {date:"8/13",  s:"D", smIn:11000,smB:27,  smO:10, lgIn:11000,lgB:28, lgO:10},
+  {date:"8/13",  s:"N", smIn:11000,smB:13,  smO:5,  lgIn:11000,lgB:26, lgO:8 },
+  {date:"8/14",  s:"D", smIn:11000,smB:53,  smO:16, lgIn:11000,lgB:16, lgO:6 },
+  {date:"8/14",  s:"N", smIn:11000,smB:34,  smO:8,  lgIn:11000,lgB:80, lgO:18},
+  {date:"8/15",  s:"D", smIn:10000,smB:25,  smO:11, lgIn:10000,lgB:39, lgO:10},
+  {date:"8/15",  s:"N", smIn:10000,smB:31,  smO:13, lgIn:10000,lgB:14, lgO:5 },
+  {date:"8/16",  s:"D", smIn:10000,smB:14,  smO:9,  lgIn:10000,lgB:15, lgO:4 },
+  {date:"8/16",  s:"N", smIn:10000,smB:55,  smO:14, lgIn:11000,lgB:3,  lgO:1 },
+  {date:"8/17",  s:"D", smIn:11000,smB:32,  smO:11, lgIn:11000,lgB:49, lgO:11},
+  {date:"8/17",  s:"N", smIn:12000,smB:31,  smO:9,  lgIn:11000,lgB:17, lgO:8 },
+  {date:"8/18",  s:"D", smIn:9000, smB:26,  smO:7,  lgIn:10000,lgB:13, lgO:8 },
+  {date:"8/18",  s:"N", smIn:12000,smB:28,  smO:13, lgIn:11000,lgB:23, lgO:11},
+  {date:"8/19",  s:"D", smIn:10000,smB:22,  smO:9,  lgIn:10000,lgB:40, lgO:16},
+  {date:"8/19",  s:"N", smIn:12000,smB:14,  smO:7,  lgIn:12000,lgB:37, lgO:13},
+  {date:"8/20",  s:"D", smIn:10458,smB:36,  smO:8,  lgIn:10800,lgB:24, lgO:14},
+  {date:"8/20",  s:"N", smIn:10000,smB:26,  smO:12, lgIn:9000, lgB:14, lgO:5 },
+  {date:"8/21",  s:"D", smIn:10000,smB:38,  smO:8,  lgIn:10000,lgB:54, lgO:9 },
+  {date:"8/21",  s:"N", smIn:10000,smB:31,  smO:12, lgIn:11000,lgB:78, lgO:20},
+  {date:"8/22",  s:"D", smIn:10000,smB:63,  smO:16, lgIn:10000,lgB:27, lgO:5 },
+  {date:"8/22",  s:"N", smIn:11000,smB:43,  smO:11, lgIn:11000,lgB:50, lgO:15},
+  {date:"8/23",  s:"D", smIn:11000,smB:65,  smO:21, lgIn:11000,lgB:32, lgO:4 },
+  {date:"8/23",  s:"N", smIn:9000, smB:68,  smO:13, lgIn:11000,lgB:36, lgO:13},
+  {date:"8/24",  s:"D", smIn:10000,smB:71,  smO:28, lgIn:11000,lgB:34, lgO:11},
+  {date:"8/24",  s:"N", smIn:9000, smB:48,  smO:19, lgIn:11000,lgB:25, lgO:13},
+  {date:"8/25",  s:"D", smIn:11000,smB:118, smO:9,  lgIn:10000,lgB:38, lgO:4 },
+  {date:"8/25",  s:"N", smIn:9000, smB:39,  smO:23, lgIn:10000,lgB:22, lgO:9 },
+  {date:"8/26",  s:"D", smIn:9000, smB:56,  smO:4,  lgIn:10000,lgB:14, lgO:9 },
+  {date:"8/26",  s:"N", smIn:10000,smB:27,  smO:9,  lgIn:10000,lgB:28, lgO:14},
+  {date:"8/27",  s:"D", smIn:9000, smB:38,  smO:2,  lgIn:8000, lgB:10, lgO:5 },
+  {date:"8/27",  s:"N", smIn:0,    smB:0,   smO:0,  lgIn:9000, lgB:11, lgO:1 },
+  {date:"8/28",  s:"D", smIn:0,    smB:0,   smO:0,  lgIn:10000,lgB:29, lgO:14},
+  {date:"8/28",  s:"N", smIn:0,    smB:0,   smO:0,  lgIn:11000,lgB:32, lgO:13},
+  {date:"8/29",  s:"D", smIn:0,    smB:0,   smO:0,  lgIn:11000,lgB:27, lgO:10},
+  {date:"8/29",  s:"N", smIn:0,    smB:0,   smO:0,  lgIn:11000,lgB:15, lgO:1 },
+  {date:"8/30",  s:"D", smIn:0,    smB:0,   smO:0,  lgIn:11000,lgB:31, lgO:8 },
+  {date:"8/30",  s:"N", smIn:0,    smB:0,   smO:0,  lgIn:11000,lgB:32, lgO:11},
+  {date:"8/31",  s:"D", smIn:0,    smB:0,   smO:0,  lgIn:11000,lgB:39, lgO:8 },
+  {date:"8/31",  s:"N", smIn:9000, smB:8,   smO:3,  lgIn:6000, lgB:36, lgO:2 },
+];
+
+// ICT — Daily data (from cumulative Excel files, Luxshare ICT)
+// OMM True Rejects = 0 throughout (all CCD flags confirmed as false rejects)
+// Note: CCD rate step-change at ~7/30 due to Enhanced SOP Implementation
+const ictSmData = [
+  {date:"07/07",input:1694,   bMinus:5,   ommNG:0,ccdRate:0.295},
+  {date:"07/08",input:3306,   bMinus:8,   ommNG:0,ccdRate:0.242},
+  {date:"07/16",input:18626,  bMinus:49,  ommNG:0,ccdRate:0.263},
+  {date:"07/17",input:27379,  bMinus:52,  ommNG:0,ccdRate:0.190},
+  {date:"07/18",input:32565,  bMinus:74,  ommNG:0,ccdRate:0.227},
+  {date:"07/20",input:35000,  bMinus:89,  ommNG:0,ccdRate:0.254},
+  {date:"07/21",input:38077,  bMinus:97,  ommNG:0,ccdRate:0.255},
+  {date:"07/22",input:33127,  bMinus:64,  ommNG:0,ccdRate:0.193},
+  {date:"07/23",input:37006,  bMinus:83,  ommNG:0,ccdRate:0.224},
+  {date:"07/24",input:32333,  bMinus:69,  ommNG:0,ccdRate:0.213},
+  {date:"07/25",input:37177,  bMinus:76,  ommNG:0,ccdRate:0.204},
+  {date:"07/27",input:43482,  bMinus:101, ommNG:0,ccdRate:0.232},
+  {date:"07/28",input:36648,  bMinus:71,  ommNG:0,ccdRate:0.194},
+  {date:"07/29",input:38013,  bMinus:77,  ommNG:0,ccdRate:0.203},
+  {date:"07/30",input:33564,  bMinus:312, ommNG:0,ccdRate:0.930}, // Enhanced SOP
+  {date:"07/31",input:34879,  bMinus:304, ommNG:0,ccdRate:0.872},
+  {date:"08/01",input:33396,  bMinus:283, ommNG:0,ccdRate:0.847},
+  {date:"08/03",input:33195,  bMinus:295, ommNG:0,ccdRate:0.889},
+  {date:"08/04",input:33640,  bMinus:284, ommNG:0,ccdRate:0.844},
+  {date:"08/05",input:34536,  bMinus:299, ommNG:0,ccdRate:0.866},
+  {date:"08/06",input:38264,  bMinus:323, ommNG:0,ccdRate:0.844},
+  {date:"08/07",input:36326,  bMinus:307, ommNG:0,ccdRate:0.845},
+  {date:"08/08",input:38331,  bMinus:325, ommNG:0,ccdRate:0.848},
+  {date:"08/10",input:25185,  bMinus:204, ommNG:0,ccdRate:0.810},
+  {date:"08/11",input:26172,  bMinus:221, ommNG:0,ccdRate:0.844},
+  {date:"08/12",input:27553,  bMinus:234, ommNG:0,ccdRate:0.849},
+  {date:"08/13",input:26619,  bMinus:220, ommNG:0,ccdRate:0.826},
+  {date:"08/14",input:26383,  bMinus:226, ommNG:0,ccdRate:0.857},
+  {date:"08/17",input:26396,  bMinus:215, ommNG:0,ccdRate:0.815},
+  {date:"08/18",input:26802,  bMinus:222, ommNG:0,ccdRate:0.828},
+  {date:"08/19",input:26640,  bMinus:226, ommNG:0,ccdRate:0.848},
+  {date:"08/20",input:28657,  bMinus:235, ommNG:0,ccdRate:0.820},
+  {date:"08/21",input:29410,  bMinus:254, ommNG:0,ccdRate:0.864},
+  {date:"08/24",input:19628,  bMinus:163, ommNG:0,ccdRate:0.830},
+  {date:"08/25",input:45126,  bMinus:362, ommNG:0,ccdRate:0.802},
+  {date:"08/26",input:32990,  bMinus:277, ommNG:0,ccdRate:0.840},
+  {date:"08/27",input:30608,  bMinus:248, ommNG:0,ccdRate:0.810},
+  {date:"08/28",input:31478,  bMinus:267, ommNG:0,ccdRate:0.848},
+  {date:"08/29",input:21454,  bMinus:175, ommNG:0,ccdRate:0.816},
+  {date:"08/31",input:34491,  bMinus:275, ommNG:0,ccdRate:0.797},
+];
+const ictLgData = [
+  {date:"07/06",input:5000,   bMinus:10,  ommNG:0,ccdRate:0.200},
+  {date:"07/16",input:14277,  bMinus:31,  ommNG:0,ccdRate:0.217},
+  {date:"07/17",input:25668,  bMinus:47,  ommNG:0,ccdRate:0.183},
+  {date:"07/18",input:27241,  bMinus:57,  ommNG:0,ccdRate:0.209},
+  {date:"07/20",input:35000,  bMinus:66,  ommNG:0,ccdRate:0.189},
+  {date:"07/21",input:34966,  bMinus:79,  ommNG:0,ccdRate:0.226},
+  {date:"07/22",input:36227,  bMinus:72,  ommNG:0,ccdRate:0.199},
+  {date:"07/23",input:37519,  bMinus:80,  ommNG:0,ccdRate:0.213},
+  {date:"07/24",input:36916,  bMinus:75,  ommNG:0,ccdRate:0.203},
+  {date:"07/25",input:36729,  bMinus:68,  ommNG:0,ccdRate:0.185},
+  {date:"07/27",input:26876,  bMinus:45,  ommNG:0,ccdRate:0.167},
+  {date:"07/28",input:35234,  bMinus:63,  ommNG:0,ccdRate:0.179},
+  {date:"07/29",input:28040,  bMinus:58,  ommNG:0,ccdRate:0.207},
+  {date:"07/30",input:37155,  bMinus:325, ommNG:0,ccdRate:0.875}, // Enhanced SOP
+  {date:"07/31",input:38843,  bMinus:349, ommNG:0,ccdRate:0.898},
+  {date:"08/01",input:31428,  bMinus:257, ommNG:0,ccdRate:0.818},
+  {date:"08/03",input:31893,  bMinus:268, ommNG:0,ccdRate:0.840},
+  {date:"08/04",input:27051,  bMinus:236, ommNG:0,ccdRate:0.872},
+  {date:"08/05",input:38629,  bMinus:345, ommNG:0,ccdRate:0.893},
+  {date:"08/06",input:31069,  bMinus:251, ommNG:0,ccdRate:0.808},
+  {date:"08/07",input:38594,  bMinus:319, ommNG:0,ccdRate:0.827},
+  {date:"08/08",input:32768,  bMinus:272, ommNG:0,ccdRate:0.830},
+  {date:"08/10",input:47259,  bMinus:413, ommNG:0,ccdRate:0.874},
+  {date:"08/11",input:37378,  bMinus:327, ommNG:0,ccdRate:0.875},
+  {date:"08/12",input:37177,  bMinus:311, ommNG:0,ccdRate:0.837},
+  {date:"08/13",input:38316,  bMinus:325, ommNG:0,ccdRate:0.848},
+  {date:"08/14",input:38036,  bMinus:312, ommNG:0,ccdRate:0.820},
+  {date:"08/15",input:37837,  bMinus:323, ommNG:0,ccdRate:0.854},
+  {date:"08/17",input:32667,  bMinus:274, ommNG:0,ccdRate:0.839},
+  {date:"08/18",input:22921,  bMinus:196, ommNG:0,ccdRate:0.855},
+  {date:"08/19",input:36133,  bMinus:303, ommNG:0,ccdRate:0.839},
+  {date:"08/20",input:34010,  bMinus:288, ommNG:0,ccdRate:0.847},
+  {date:"08/21",input:37164,  bMinus:309, ommNG:0,ccdRate:0.831},
+  {date:"08/24",input:46621,  bMinus:397, ommNG:0,ccdRate:0.852},
+  {date:"08/25",input:21816,  bMinus:178, ommNG:0,ccdRate:0.816},
+  {date:"08/26",input:36701,  bMinus:304, ommNG:0,ccdRate:0.828},
+  {date:"08/27",input:42600,  bMinus:356, ommNG:0,ccdRate:0.836},
+  {date:"08/28",input:35962,  bMinus:288, ommNG:0,ccdRate:0.801},
+  {date:"08/29",input:35946,  bMinus:291, ommNG:0,ccdRate:0.810},
+  {date:"08/31",input:37192,  bMinus:308, ommNG:0,ccdRate:0.828},
+];
+
+/* =====================================================================
+   DERIVED DATA — Computed automatically from shift data
+   ===================================================================== */
+
+// Aggregate avary shifts by date
+function aggregateAvary() {
+  const byDate = {};
+  avaryShifts.forEach(r => {
+    if (!byDate[r.date]) byDate[r.date] = {date:r.date,smIn:0,smB:0,smO:0,lgIn:0,lgB:0,lgO:0};
+    const d = byDate[r.date];
+    d.smIn += r.smIn; d.smB += r.smB; d.smO += r.smO;
+    d.lgIn += r.lgIn; d.lgB += r.lgB; d.lgO += r.lgO;
+  });
+  return Object.values(byDate);
+}
+const avaryDaily = aggregateAvary();
+
+/* =====================================================================
+   CHART HELPERS
+   ===================================================================== */
+const CC = {
+  amber:  'rgba(255,159,10,1)',
+  amberA: 'rgba(255,159,10,0.15)',
+  red:    'rgba(255,59,48,1)',
+  redA:   'rgba(255,59,48,0.15)',
+  blue:   'rgba(0,113,227,1)',
+  blueA:  'rgba(0,113,227,0.12)',
+  green:  'rgba(48,209,88,1)',
+  greenA: 'rgba(48,209,88,0.12)',
+  indigo: 'rgba(94,92,230,1)',
+  indigoA:'rgba(94,92,230,0.12)',
+  teal:   'rgba(90,200,250,1)',
+  tealA:  'rgba(90,200,250,0.12)',
+};
+
+function pct(v,t){ return t>0 ? (v/t*100).toFixed(3) : '0.000'; }
+
+const sopPlugin = {
+  id:'sopLine',
+  afterDraw(chart){
+    if(!chart.config.options.sopIndex) return;
+    const {ctx,scales:{x,y},chartArea} = chart;
+    const xi = chart.config.options.sopIndex;
+    const px = x.getPixelForValue(xi);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(px, chartArea.top);
+    ctx.lineTo(px, chartArea.bottom);
+    ctx.strokeStyle='rgba(255,159,10,0.7)';
+    ctx.lineWidth=2;
+    ctx.setLineDash([6,4]);
+    ctx.stroke();
+    ctx.fillStyle='rgba(255,159,10,0.9)';
+    ctx.font='bold 10px system-ui';
+    ctx.fillText('Enhanced SOP ▶', px+4, chartArea.top+14);
+    ctx.restore();
+  }
+};
+Chart.register(sopPlugin);
+
+const baseOpts = (yLabel='Rate (%)', max=null) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: {mode:'index', intersect:false},
+  plugins: {
+    legend: {position:'top', labels:{boxWidth:12, font:{size:11}}},
+    tooltip: {
+      callbacks: {
+        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y.toFixed(3)+'%' : 'N/A'}`
+      }
+    }
+  },
+  scales: {
+    x: {
+      ticks:{font:{size:10}, maxRotation:45, minRotation:30},
+      grid:{color:'rgba(0,0,0,0.04)'}
+    },
+    y: {
+      beginAtZero:true,
+      max: max,
+      title:{display:true, text:yLabel, font:{size:10}, color:'#636366'},
+      ticks:{font:{size:10}, callback:v=>v.toFixed(2)+'%'},
+      grid:{color:'rgba(0,0,0,0.06)'}
+    }
+  }
+});
+
+/* =====================================================================
+   AVARY CHARTS
+   ===================================================================== */
+const aLabels = avaryDaily.map(d=>d.date);
+const aSmCCD  = avaryDaily.map(d=>+pct(d.smB,d.smIn));
+const aSmOMM  = avaryDaily.map(d=>+pct(d.smO,d.smIn));
+const aLgCCD  = avaryDaily.map(d=>+pct(d.lgB,d.lgIn));
+const aLgOMM  = avaryDaily.map(d=>+pct(d.lgO,d.lgIn));
+
+new Chart(document.getElementById('avary-sm-rate'), {
+  type:'line',
+  data:{
+    labels: aLabels,
+    datasets:[
+      {label:'SM CCD B- Rate', data:aSmCCD, borderColor:CC.amber, backgroundColor:CC.amberA,
+       borderWidth:2.5, pointRadius:4, pointBackgroundColor:CC.amber, tension:0.3, fill:true},
+      {label:'SM OMM True NG Rate', data:aSmOMM, borderColor:CC.red, backgroundColor:CC.redA,
+       borderWidth:2, pointRadius:4, pointBackgroundColor:CC.red, tension:0.3, fill:true},
+    ]
+  },
+  options: baseOpts('Rate (% of input)',1.3)
+});
+
+new Chart(document.getElementById('avary-lg-rate'), {
+  type:'line',
+  data:{
+    labels: aLabels,
+    datasets:[
+      {label:'LG CCD B- Rate', data:aLgCCD, borderColor:CC.indigo, backgroundColor:CC.indigoA,
+       borderWidth:2.5, pointRadius:4, pointBackgroundColor:CC.indigo, tension:0.3, fill:true},
+      {label:'LG OMM True NG Rate', data:aLgOMM, borderColor:CC.red, backgroundColor:CC.redA,
+       borderWidth:2, pointRadius:4, pointBackgroundColor:CC.red, tension:0.3, fill:true},
+    ]
+  },
+  options: baseOpts('Rate (% of input)',1.3)
+});
+
+// Volume / count chart — SM and LG B- combined, with OMM NG overlay
+new Chart(document.getElementById('avary-volume'), {
+  type:'bar',
+  data:{
+    labels: aLabels,
+    datasets:[
+      {label:'SM CCD B- Count', data:avaryDaily.map(d=>d.smB),
+       backgroundColor:'rgba(255,159,10,0.75)', stack:'sm', borderRadius:3},
+      {label:'SM OMM Confirmed NG', data:avaryDaily.map(d=>d.smO),
+       backgroundColor:'rgba(255,59,48,0.75)', stack:'sm', borderRadius:3},
+      {label:'LG CCD B- Count', data:avaryDaily.map(d=>d.lgB),
+       backgroundColor:'rgba(94,92,230,0.65)', stack:'lg', borderRadius:3},
+      {label:'LG OMM Confirmed NG', data:avaryDaily.map(d=>d.lgO),
+       backgroundColor:'rgba(255,59,48,0.55)', stack:'lg', borderRadius:3},
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+    scales:{
+      x:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},
+      y:{beginAtZero:true, title:{display:true,text:'Count (units)',font:{size:10},color:'#636366'},
+         ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.06)'}}
+    }
+  }
+});
+
+/* =====================================================================
+   ICT CHARTS
+   ===================================================================== */
+const sopSmIdx = ictSmData.findIndex(d=>d.date==='07/30');
+const sopLgIdx = ictLgData.findIndex(d=>d.date==='07/30');
+
+const smOpts = {...baseOpts('CCD B- Rate (%)',1.1), sopIndex: sopSmIdx};
+smOpts.plugins = {...smOpts.plugins};
+
+new Chart(document.getElementById('ict-sm-rate'), {
+  type:'line',
+  data:{
+    labels: ictSmData.map(d=>d.date),
+    datasets:[{
+      label:'SM CCD B- Rate',
+      data: ictSmData.map(d=>d.ccdRate),
+      borderColor: CC.amber,
+      backgroundColor: ictSmData.map((_,i)=> i < sopSmIdx ? 'rgba(0,113,227,0.08)' : 'rgba(255,159,10,0.10)'),
+      pointBackgroundColor: ictSmData.map((_,i)=> i < sopSmIdx ? CC.blue : CC.amber),
+      borderWidth:2.5, pointRadius:4, tension:0.3, fill:true
+    }]
+  },
+  options:{
+    ...baseOpts('CCD B- Rate (%)',1.1),
+    sopIndex: sopSmIdx,
+    plugins:{
+      legend:{position:'top',labels:{boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{label:ctx=>`CCD B- Rate: ${ctx.parsed.y.toFixed(3)}%`}}
+    }
+  }
+});
+
+new Chart(document.getElementById('ict-lg-rate'), {
+  type:'line',
+  data:{
+    labels: ictLgData.map(d=>d.date),
+    datasets:[{
+      label:'LG CCD B- Rate',
+      data: ictLgData.map(d=>d.ccdRate),
+      borderColor: CC.indigo,
+      backgroundColor: ictLgData.map((_,i)=> i < sopLgIdx ? 'rgba(94,92,230,0.08)' : 'rgba(94,92,230,0.12)'),
+      pointBackgroundColor: ictLgData.map((_,i)=> i < sopLgIdx ? CC.teal : CC.indigo),
+      borderWidth:2.5, pointRadius:4, tension:0.3, fill:true
+    }]
+  },
+  options:{
+    ...baseOpts('CCD B- Rate (%)',1.1),
+    sopIndex: sopLgIdx,
+    plugins:{
+      legend:{position:'top',labels:{boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{label:ctx=>`CCD B- Rate: ${ctx.parsed.y.toFixed(3)}%`}}
+    }
+  }
+});
+
+// ICT Volume chart
+new Chart(document.getElementById('ict-volume'), {
+  type:'bar',
+  data:{
+    labels: ictSmData.map(d=>d.date),
+    datasets:[
+      {label:'SM Input', data:ictSmData.map(d=>d.input),
+       backgroundColor:'rgba(0,113,227,0.6)', stack:'s', borderRadius:2},
+      {label:'LG Input', data:ictSmData.map((d,i)=> ictLgData.find(l=>l.date===d.date)?.input||null),
+       backgroundColor:'rgba(94,92,230,0.55)', stack:'l', borderRadius:2},
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+    scales:{
+      x:{ticks:{font:{size:10},maxRotation:45,minRotation:30},grid:{color:'rgba(0,0,0,0.04)'}},
+      y:{beginAtZero:true,title:{display:true,text:'Daily Input (units)',font:{size:10},color:'#636366'},
+         ticks:{font:{size:10},callback:v=>(v/1000).toFixed(0)+'k'},grid:{color:'rgba(0,0,0,0.06)'}}
+    }
+  }
+});
+
+/* =====================================================================
+   TABLES
+   ===================================================================== */
+function rateClass(r){
+  if(r===0||r==='0.000') return 'rate-zero';
+  const n=parseFloat(r);
+  if(n<0.2) return 'rate-ok';
+  if(n<0.5) return 'rate-warn';
+  return 'rate-bad';
+}
+
+// Avary daily summary table
+function buildAvaryDailyTable(){
+  const hdr = `<thead><tr>
+    <th>Date</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 SM</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 LG</th>
+  </tr><tr>
+    <th></th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>CCD B-</th><th>CCD%</th><th>OMM NG</th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>CCD B-</th><th>CCD%</th><th>OMM NG</th>
+  </tr></thead>`;
+  let rows='';
+  avaryDaily.forEach(d=>{
+    const sc=pct(d.smB,d.smIn), lc=pct(d.lgB,d.lgIn);
+    rows+=`<tr class="tr-daily">
+      <td><strong>${d.date}</strong></td>
+      <td style="border-left:2px solid #f0f0f0">${d.smIn.toLocaleString()}</td>
+      <td>${d.smB}</td>
+      <td class="${rateClass(sc)}">${sc}%</td>
+      <td>${d.smO}</td>
+      <td style="border-left:2px solid #f0f0f0">${d.lgIn.toLocaleString()}</td>
+      <td>${d.lgB}</td>
+      <td class="${rateClass(lc)}">${lc}%</td>
+      <td>${d.lgO}</td>
+    </tr>`;
+  });
+  document.getElementById('avary-daily-tbl').innerHTML = hdr+'<tbody>'+rows+'</tbody>';
+}
+
+// Avary shift detail table
+function buildAvaryShiftTable(){
+  const hdr = `<thead><tr>
+    <th>Date</th><th>Shift</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 SM</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 LG</th>
+  </tr><tr>
+    <th></th><th></th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>CCD B-</th><th>CCD%</th><th>OMM NG</th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>CCD B-</th><th>CCD%</th><th>OMM NG</th>
+  </tr></thead>`;
+  let rows='';
+  avaryShifts.forEach(r=>{
+    const sc=pct(r.smB,r.smIn), lc=pct(r.lgB,r.lgIn);
+    const cls = r.s==='D'?'tr-day':'tr-night';
+    const badge = r.s==='D'?'<span class="badge-d">Day</span>':'<span class="badge-n">Night</span>';
+    rows+=`<tr class="${cls}">
+      <td>${r.date}</td>
+      <td>${badge}</td>
+      <td style="border-left:2px solid #f0f0f0">${r.smIn.toLocaleString()}</td>
+      <td>${r.smB}</td>
+      <td class="${rateClass(sc)}">${sc}%</td>
+      <td>${r.smO}</td>
+      <td style="border-left:2px solid #f0f0f0">${r.lgIn.toLocaleString()}</td>
+      <td>${r.lgB}</td>
+      <td class="${rateClass(lc)}">${lc}%</td>
+      <td>${r.lgO}</td>
+    </tr>`;
+  });
+  document.getElementById('avary-shift-tbl').innerHTML = hdr+'<tbody>'+rows+'</tbody>';
+}
+
+// ICT combined table
+function buildIctTable(){
+  const allDates = [...new Set([...ictSmData.map(d=>d.date),...ictLgData.map(d=>d.date)])].sort();
+  const smMap = Object.fromEntries(ictSmData.map(d=>[d.date,d]));
+  const lgMap = Object.fromEntries(ictLgData.map(d=>[d.date,d]));
+  const hdr=`<thead><tr>
+    <th>Date</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 SM</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 LG</th>
+    <th style="border-left:2px solid #e5e5ea">OMM True NG</th>
+  </tr><tr>
+    <th></th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>CCD B-</th><th>CCD%</th><th>OMM NG</th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>CCD B-</th><th>CCD%</th><th>OMM NG</th>
+    <th>(Both)</th>
+  </tr></thead>`;
+  let rows='';
+  allDates.forEach(date=>{
+    const sm=smMap[date], lg=lgMap[date];
+    const isSop = date==='07/30';
+    const sopBadge = isSop?'<span class="badge-sop">SOP+</span>':'';
+    const smIn=sm?sm.input:null, smB=sm?sm.bMinus:null, smR=sm?sm.ccdRate.toFixed(3):null;
+    const lgIn=lg?lg.input:null, lgB=lg?lg.bMinus:null, lgR=lg?lg.ccdRate.toFixed(3):null;
+    const isPreSop = date < '07/30';
+    const rowStyle = isPreSop ? 'background:#f0f8ff' : '';
+    rows+=`<tr style="${rowStyle}">
+      <td><strong>${date}</strong>${sopBadge}</td>
+      <td style="border-left:2px solid #f0f0f0">${smIn?smIn.toLocaleString():'—'}</td>
+      <td>${smB!==null?smB:'—'}</td>
+      <td class="${smR?rateClass(smR):''}">${smR?smR+'%':'—'}</td>
+      <td class="rate-zero">0</td>
+      <td style="border-left:2px solid #f0f0f0">${lgIn?lgIn.toLocaleString():'—'}</td>
+      <td>${lgB!==null?lgB:'—'}</td>
+      <td class="${lgR?rateClass(lgR):''}">${lgR?lgR+'%':'—'}</td>
+      <td class="rate-zero">0</td>
+      <td class="rate-zero" style="border-left:2px solid #f0f0f0;font-weight:700;color:var(--green)">0</td>
+    </tr>`;
+  });
+  document.getElementById('ict-table').innerHTML=hdr+'<tbody>'+rows+'</tbody>';
+}
+
+buildAvaryDailyTable();
+buildAvaryShiftTable();
+buildIctTable();
+
+/* =====================================================================
+   TAB & TOGGLE LOGIC
+   ===================================================================== */
+function switchTab(id){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['avary','ict'][i]===id));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id==='tab-'+id));
+}
+
+function avaryView(v){
+  document.getElementById('avary-daily-tbl').style.display = v==='daily'?'':'none';
+  document.getElementById('avary-shift-tbl').style.display = v==='shift'?'':'none';
+  document.getElementById('avary-daily-btn').classList.toggle('active',v==='daily');
+  document.getElementById('avary-shift-btn').classList.toggle('active',v==='shift');
+}
+</script>
+</body>
+</html>
