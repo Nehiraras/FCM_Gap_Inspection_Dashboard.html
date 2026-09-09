@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FCM Lift-Up Gap Inspection Dashboard — X3587</title>
+<title>N23x / D19x FCM Lift-Up Gap Inspection Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
 :root {
@@ -138,7 +138,7 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
 <header>
   <div class="hdr-top">
     <div>
-      <h1>X3587 D19X — Multi-Node Inspection Dashboard</h1>
+      <h1>N23x / D19x — Multi-Node Inspection Dashboard</h1>
       <p>PCBA NFC Module → Display Module | 100% Screening: CCD Visual → OMM Dimensional Confirmation</p>
     </div>
     <div class="hdr-badges">
@@ -232,14 +232,14 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
     <strong>Inspection Flow:</strong> All input PCBAs receive 100% CCD visual screening. Parts flagged as <strong>Grade B-</strong> (gap ≥ 50 µm threshold) are re-inspected via OMM for precise measurement. OMM confirms whether the gap truly exceeds 50 µm (USL). On average, ~27% of CCD B- flags are confirmed as true NG; the remainder are false rejects recovered as good parts.
   </div>
 
-  <div class="section-title">Daily CCD B- Fail Rate — X3587 SM & LG <span>(7/28–9/7, D+N Combined)</span></div>
+  <div class="section-title">Daily CCD B- Fail Rate — N23x/D19x SM & LG <span>(7/28–9/7, D+N Combined)</span></div>
   <div class="chart-grid">
     <div class="chart-card">
-      <h3>X3587 SM — CCD B- Rate vs OMM True NG Rate <small>(% of daily input)</small></h3>
+      <h3>SM — CCD B- Rate vs OMM True NG Rate <small>(% of daily input)</small></h3>
       <div class="chart-wrap"><canvas id="avary-sm-rate"></canvas></div>
     </div>
     <div class="chart-card">
-      <h3>X3587 LG — CCD B- Rate vs OMM True NG Rate <small>(% of daily input)</small></h3>
+      <h3>LG — CCD B- Rate vs OMM True NG Rate <small>(% of daily input)</small></h3>
       <div class="chart-wrap"><canvas id="avary-lg-rate"></canvas></div>
     </div>
   </div>
@@ -338,11 +338,11 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
   <div class="section-title">Daily CCD B- Rate — ICT SM & LG <span>(7/6–9/6)</span></div>
   <div class="chart-grid">
     <div class="chart-card">
-      <h3>X3587 SM — Daily CCD B- Rate (%) <small>· OMM True NG = 0% throughout</small></h3>
+      <h3>SM — Daily CCD B- Rate (%) <small>· OMM True NG = 0% throughout</small></h3>
       <div class="chart-wrap"><canvas id="ict-sm-rate"></canvas></div>
     </div>
     <div class="chart-card">
-      <h3>X3587 LG — Daily CCD B- Rate (%) <small>· OMM True NG = 0% throughout</small></h3>
+      <h3>LG — Daily CCD B- Rate (%) <small>· OMM True NG = 0% throughout</small></h3>
       <div class="chart-wrap"><canvas id="ict-lg-rate"></canvas></div>
     </div>
   </div>
@@ -540,6 +540,11 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
       <div class="chart-wrap" style="height:240px"><canvas id="lipo-daily-chart"></canvas></div>
     </div>
 
+    <div class="chart-card" style="margin-bottom:16px">
+      <h3>IQC Combined B- Trend — Small + Large Total <small>· downward trend toward zero</small></h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="lipo-trend-chart"></canvas></div>
+    </div>
+
     <div class="section-title">Weekly Summary Table — LIPO IQC</div>
     <div class="table-wrap" style="margin-bottom:48px">
       <div class="table-controls">
@@ -561,7 +566,7 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
     </div>
   </div><!-- end lipo-tab-jgp -->
 
-</div><!-- end node-lipo -->X3587 FCM Lift-Up Gap Inspection Dashboard · Generated Sep 7, 2026 · USL: 50 µm · Vendors: Avary, ICT (Luxshare)</footer>
+</div><!-- end node-lipo -->N23x / D19x FCM Lift-Up Gap Inspection Dashboard · Generated Sep 7, 2026 · USL: 50 µm · Vendors: Avary, ICT (Luxshare)</footer>
 
 <script>
 /* =====================================================================
@@ -1004,8 +1009,8 @@ function rateClass(r){
 function buildAvaryDailyTable(){
   const hdr = `<thead><tr>
     <th>Date</th>
-    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 SM</th>
-    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 LG</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">SM</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">LG</th>
   </tr><tr>
     <th></th>
     <th style="border-left:2px solid #e5e5ea">Input</th><th>CCD B-</th><th>CCD%</th><th>OMM NG</th>
@@ -1033,8 +1038,8 @@ function buildAvaryDailyTable(){
 function buildAvaryShiftTable(){
   const hdr = `<thead><tr>
     <th>Date</th><th>Shift</th>
-    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 SM</th>
-    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 LG</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">SM</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">LG</th>
   </tr><tr>
     <th></th><th></th>
     <th style="border-left:2px solid #e5e5ea">Input</th><th>CCD B-</th><th>CCD%</th><th>OMM NG</th>
@@ -1068,8 +1073,8 @@ function buildIctTable(){
   const lgMap = Object.fromEntries(ictLgData.map(d=>[d.date,d]));
   const hdr=`<thead><tr>
     <th>Date</th>
-    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 SM</th>
-    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">X3587 LG</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">SM</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">LG</th>
     <th style="border-left:2px solid #e5e5ea">OMM True NG</th>
   </tr><tr>
     <th></th>
@@ -1636,6 +1641,51 @@ const lipoDailyChart = new Chart(document.getElementById('lipo-daily-chart'), {
     </tr>`;
   });
   document.getElementById('lipo-table').innerHTML=hdr+'<tbody>'+rows+'</tbody>';
+})();
+
+/* LIPO COMBINED TREND CHART */
+(function(){
+  const combined = lipoDaily.map(d => d.smB + d.lgB);
+  // 5-day moving average
+  const ma = combined.map((_, i) => {
+    const win = combined.slice(Math.max(0, i-4), i+1);
+    return +(win.reduce((s,v)=>s+v,0)/win.length).toFixed(2);
+  });
+  new Chart(document.getElementById('lipo-trend-chart'), {
+    type:'bar',
+    data:{
+      labels: lipoDaily.map(d=>d.date),
+      datasets:[
+        {type:'bar', label:'Combined IQC B- (Sm+Lg)',
+         data: combined,
+         backgroundColor: combined.map(v => v===0 ? 'rgba(48,209,88,0.5)' : 'rgba(94,92,230,0.55)'),
+         borderRadius:3, order:2},
+        {type:'line', label:'5-Day Moving Avg',
+         data: ma,
+         borderColor:'rgba(255,59,48,0.9)', backgroundColor:'transparent',
+         borderWidth:2.5, pointRadius:0, tension:0.4, order:1},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{position:'top',labels:{boxWidth:12,font:{size:11}}},
+        tooltip:{callbacks:{label:ctx=>
+          ctx.datasetIndex===0
+            ? `Combined B-: ${ctx.parsed.y}`
+            : `5-day avg: ${ctx.parsed.y}`
+        }}
+      },
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:60,minRotation:45},grid:{color:'rgba(0,0,0,0.04)'}},
+        y:{beginAtZero:true,
+           title:{display:true,text:'Combined IQC B- Count',font:{size:10},color:'#636366'},
+           ticks:{font:{size:10},stepSize:5},
+           grid:{color:'rgba(0,0,0,0.06)'}}
+      }
+    }
+  });
 })();
 
 /* LIPO FILTER */
