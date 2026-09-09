@@ -559,12 +559,93 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
   </div><!-- end lipo-tab-itnv -->
 
   <div id="lipo-tab-jgp" class="tab-content">
-    <div style="padding:80px 32px;text-align:center;color:var(--text2)">
-      <div style="font-size:40px;margin-bottom:16px">📋</div>
-      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">JGP Data Coming Soon</div>
-      <div style="font-size:13px">Drop the JGP LIPO inspection file to populate this tab.</div>
+
+  <div class="filter-bar" style="padding-left:32px">
+    <span class="filter-label">Date Range</span>
+    <input type="date" id="jgp-from" value="2026-07-06" min="2026-07-06" max="2026-09-08" onchange="filterJGP()">
+    <span class="filter-sep">→</span>
+    <input type="date" id="jgp-to" value="2026-09-08" min="2026-07-06" max="2026-09-08" onchange="filterJGP()">
+    <button class="filter-reset" onclick="resetFilter('jgp','2026-07-06','2026-09-08')">Reset</button>
+    <span id="jgp-filter-note" class="filter-note"></span>
+  </div>
+
+  <div class="kpi-grid" style="padding:24px 32px 0">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">Small IQC Input</div>
+      <div class="kpi-value" id="jgp-sm-iqc-in">977,728</div>
+      <div class="kpi-sub" id="jgp-sm-iqc-in-sub">Cumulative 7/6–9/8</div>
     </div>
-  </div><!-- end lipo-tab-jgp -->
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-label">Small IQC NG (OMM Confirmed)</div>
+      <div class="kpi-value" id="jgp-sm-iqc-b">15</div>
+      <div class="kpi-rate" id="jgp-sm-iqc-rate" style="color:var(--amber)">0.0015% True NG Rate</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Small OQC Input</div>
+      <div class="kpi-value" id="jgp-sm-oqc-in">940,779</div>
+      <div class="kpi-sub">Post-process inspection</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Small OQC B- (NG)</div>
+      <div class="kpi-value" id="jgp-sm-oqc-b">0</div>
+      <div class="kpi-rate" id="jgp-sm-oqc-rate" style="color:var(--green)">0.000% ✓ Zero NG</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">Large IQC Input</div>
+      <div class="kpi-value" id="jgp-lg-iqc-in">983,221</div>
+      <div class="kpi-sub" id="jgp-lg-iqc-in-sub">Cumulative 7/6–9/8</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-label">Large IQC NG (OMM Confirmed)</div>
+      <div class="kpi-value" id="jgp-lg-iqc-b">356</div>
+      <div class="kpi-rate" id="jgp-lg-iqc-rate" style="color:var(--amber)">0.0362% True NG Rate</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Large OQC Input</div>
+      <div class="kpi-value" id="jgp-lg-oqc-in">956,623</div>
+      <div class="kpi-sub">Post-process inspection</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Large OQC B- (NG)</div>
+      <div class="kpi-value" id="jgp-lg-oqc-b">0</div>
+      <div class="kpi-rate" id="jgp-lg-oqc-rate" style="color:var(--green)">0.000% ✓ Zero NG</div>
+    </div>
+  </div>
+
+  <div style="padding:0 32px">
+    <div class="info-box" style="margin-top:20px">
+      <strong>JGP LIPO Node Inspection Flow (Hotbar Tilt — IQC Keyence → OMM + OQC):</strong> JGP uses a <strong>two-stage IQC</strong>: Keyence visual screening flags suspects (B-), then OMM dimensionally confirms true NG. OQC is zero throughout for both sizes. <strong>Small IQC:</strong> 21 Keyence flagged → 15 OMM confirmed (71% confirm rate). <strong>Large IQC:</strong> 534 Keyence flagged → 356 OMM confirmed (67% confirm rate). Large NG was concentrated in late July/early August and trended sharply to near-zero by mid-August. OQC confirms the LIPO process itself adds no defects.
+    </div>
+
+    <div class="section-title">JGP IQC Daily NG — Large &amp; Small <span>(Keyence Flagged vs OMM Confirmed)</span></div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Large IQC — Daily Keyence Flagged vs OMM Confirmed NG <small>· downward trend</small></h3>
+        <div class="chart-wrap"><canvas id="jgp-lg-daily"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Small IQC — Daily Keyence Flagged vs OMM Confirmed NG <small>· near-zero throughout</small></h3>
+        <div class="chart-wrap"><canvas id="jgp-sm-daily"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:16px">
+      <h3>JGP IQC Combined Trend — Large OMM Confirmed NG per Day <small>· 5-day moving average</small></h3>
+      <div class="chart-wrap" style="height:220px"><canvas id="jgp-trend"></canvas></div>
+    </div>
+
+    <div class="section-title">Daily Data Table — JGP IQC</div>
+    <div class="table-wrap" style="margin-bottom:48px">
+      <div class="table-controls">
+        <h3>JGP Hotbar Tilt IQC — Daily Data</h3>
+        <div style="font-size:11px;color:var(--text2)">OQC B- = 0 all days · Keyence = visual flag · OMM = confirmed true NG</div>
+      </div>
+      <div class="scroll-table">
+        <table id="jgp-table"></table>
+      </div>
+    </div>
+  </div>
+</div><!-- end lipo-tab-jgp -->
 
 </div><!-- end node-lipo -->N23x / D19x FCM Lift-Up Gap Inspection Dashboard · Generated Sep 7, 2026 · USL: 50 µm · Vendors: Avary, ICT (Luxshare)</footer>
 
@@ -1316,6 +1397,7 @@ function resetFilter(prefix, defFrom, defTo) {
   if (prefix === 'ict') filterICT();
   if (prefix === 'lgd') filterLGD();
   if (prefix === 'lipo') filterLIPO();
+  if (prefix === 'jgp') filterJGP();
 }
 
 /* ---- AVARY ---- */
@@ -1736,6 +1818,222 @@ function filterLIPO(){
 
   document.getElementById('lipo-filter-note').textContent =
     filtered.length < lipoDaily.length ? filtered.length+' days shown' : '';
+}
+
+/* =====================================================================
+   JGP LIPO DATA
+   ===================================================================== */
+const jgpDaily = [
+  {date:"07/06",smIn:4027,smKnNg:0,smOmmNg:0,lgIn:0,lgKnNg:0,lgOmmNg:0,smOqcIn:0,smOqcNg:0,lgOqcIn:0,lgOqcNg:0},
+  {date:"07/07",smIn:3689,smKnNg:0,smOmmNg:0,lgIn:4440,lgKnNg:3,lgOmmNg:1,smOqcIn:0,smOqcNg:0,lgOqcIn:0,lgOqcNg:0},
+  {date:"07/08",smIn:5350,smKnNg:2,smOmmNg:2,lgIn:4210,lgKnNg:3,lgOmmNg:2,smOqcIn:2267,smOqcNg:0,lgOqcIn:1655,lgOqcNg:0},
+  {date:"07/09",smIn:6776,smKnNg:7,smOmmNg:4,lgIn:4512,lgKnNg:0,lgOmmNg:0,smOqcIn:4003,smOqcNg:0,lgOqcIn:4314,lgOqcNg:0},
+  {date:"07/10",smIn:5132,smKnNg:0,smOmmNg:0,lgIn:4355,lgKnNg:5,lgOmmNg:5,smOqcIn:2527,smOqcNg:0,lgOqcIn:3735,lgOqcNg:0},
+  {date:"07/11",smIn:6560,smKnNg:0,smOmmNg:0,lgIn:6028,lgKnNg:5,lgOmmNg:5,smOqcIn:5952,smOqcNg:0,lgOqcIn:4869,lgOqcNg:0},
+  {date:"07/12",smIn:6379,smKnNg:2,smOmmNg:1,lgIn:5398,lgKnNg:0,lgOmmNg:0,smOqcIn:5395,smOqcNg:0,lgOqcIn:5462,lgOqcNg:0},
+  {date:"07/13",smIn:5180,smKnNg:3,smOmmNg:1,lgIn:5241,lgKnNg:3,lgOmmNg:3,smOqcIn:5481,smOqcNg:0,lgOqcIn:5335,lgOqcNg:0},
+  {date:"07/14",smIn:1180,smKnNg:0,smOmmNg:0,lgIn:5233,lgKnNg:0,lgOmmNg:0,smOqcIn:7389,smOqcNg:0,lgOqcIn:5066,lgOqcNg:0},
+  {date:"07/15",smIn:5506,smKnNg:0,smOmmNg:0,lgIn:5201,lgKnNg:1,lgOmmNg:1,smOqcIn:4692,smOqcNg:0,lgOqcIn:4532,lgOqcNg:0},
+  {date:"07/16",smIn:7260,smKnNg:0,smOmmNg:0,lgIn:5439,lgKnNg:1,lgOmmNg:1,smOqcIn:8062,smOqcNg:0,lgOqcIn:5311,lgOqcNg:0},
+  {date:"07/17",smIn:9454,smKnNg:0,smOmmNg:0,lgIn:6609,lgKnNg:0,lgOmmNg:0,smOqcIn:6206,smOqcNg:0,lgOqcIn:5291,lgOqcNg:0},
+  {date:"07/18",smIn:5636,smKnNg:0,smOmmNg:0,lgIn:7330,lgKnNg:3,lgOmmNg:3,smOqcIn:5695,smOqcNg:0,lgOqcIn:6051,lgOqcNg:0},
+  {date:"07/19",smIn:5417,smKnNg:2,smOmmNg:2,lgIn:9582,lgKnNg:2,lgOmmNg:2,smOqcIn:6462,smOqcNg:0,lgOqcIn:7080,lgOqcNg:0},
+  {date:"07/20",smIn:10530,smKnNg:0,smOmmNg:0,lgIn:10168,lgKnNg:3,lgOmmNg:2,smOqcIn:6649,smOqcNg:0,lgOqcIn:11700,lgOqcNg:0},
+  {date:"07/21",smIn:11579,smKnNg:2,smOmmNg:2,lgIn:9759,lgKnNg:3,lgOmmNg:3,smOqcIn:10238,smOqcNg:0,lgOqcIn:11219,lgOqcNg:0},
+  {date:"07/22",smIn:9550,smKnNg:0,smOmmNg:0,lgIn:11986,lgKnNg:4,lgOmmNg:4,smOqcIn:7720,smOqcNg:0,lgOqcIn:11156,lgOqcNg:0},
+  {date:"07/23",smIn:11316,smKnNg:2,smOmmNg:2,lgIn:12527,lgKnNg:10,lgOmmNg:9,smOqcIn:9598,smOqcNg:0,lgOqcIn:12282,lgOqcNg:0},
+  {date:"07/24",smIn:7557,smKnNg:0,smOmmNg:0,lgIn:12380,lgKnNg:10,lgOmmNg:9,smOqcIn:9422,smOqcNg:0,lgOqcIn:11440,lgOqcNg:0},
+  {date:"07/25",smIn:8879,smKnNg:0,smOmmNg:0,lgIn:10883,lgKnNg:10,lgOmmNg:9,smOqcIn:10886,smOqcNg:0,lgOqcIn:11800,lgOqcNg:0},
+  {date:"07/27",smIn:10445,smKnNg:0,smOmmNg:0,lgIn:14455,lgKnNg:16,lgOmmNg:8,smOqcIn:12029,smOqcNg:0,lgOqcIn:13227,lgOqcNg:0},
+  {date:"07/28",smIn:19686,smKnNg:0,smOmmNg:0,lgIn:19448,lgKnNg:30,lgOmmNg:26,smOqcIn:16238,smOqcNg:0,lgOqcIn:19238,lgOqcNg:0},
+  {date:"07/29",smIn:19435,smKnNg:1,smOmmNg:1,lgIn:20360,lgKnNg:21,lgOmmNg:21,smOqcIn:17047,smOqcNg:0,lgOqcIn:19032,lgOqcNg:0},
+  {date:"07/30",smIn:19754,smKnNg:0,smOmmNg:0,lgIn:18978,lgKnNg:39,lgOmmNg:23,smOqcIn:17338,smOqcNg:0,lgOqcIn:16909,lgOqcNg:0},
+  {date:"07/31",smIn:17954,smKnNg:0,smOmmNg:0,lgIn:17456,lgKnNg:41,lgOmmNg:29,smOqcIn:19500,smOqcNg:0,lgOqcIn:18256,lgOqcNg:0},
+  {date:"08/01",smIn:20033,smKnNg:0,smOmmNg:0,lgIn:20207,lgKnNg:26,lgOmmNg:14,smOqcIn:20154,smOqcNg:0,lgOqcIn:20239,lgOqcNg:0},
+  {date:"08/02",smIn:18734,smKnNg:0,smOmmNg:0,lgIn:20260,lgKnNg:20,lgOmmNg:11,smOqcIn:19009,smOqcNg:0,lgOqcIn:20188,lgOqcNg:0},
+  {date:"08/03",smIn:19150,smKnNg:0,smOmmNg:0,lgIn:20282,lgKnNg:27,lgOmmNg:15,smOqcIn:15307,smOqcNg:0,lgOqcIn:21425,lgOqcNg:0},
+  {date:"08/04",smIn:19947,smKnNg:0,smOmmNg:0,lgIn:19946,lgKnNg:24,lgOmmNg:22,smOqcIn:18686,smOqcNg:0,lgOqcIn:21605,lgOqcNg:0},
+  {date:"08/05",smIn:18992,smKnNg:0,smOmmNg:0,lgIn:20581,lgKnNg:26,lgOmmNg:25,smOqcIn:18238,smOqcNg:0,lgOqcIn:18928,lgOqcNg:0},
+  {date:"08/06",smIn:20902,smKnNg:0,smOmmNg:0,lgIn:18708,lgKnNg:18,lgOmmNg:16,smOqcIn:21195,smOqcNg:0,lgOqcIn:19819,lgOqcNg:0},
+  {date:"08/07",smIn:17413,smKnNg:0,smOmmNg:0,lgIn:22136,lgKnNg:5,lgOmmNg:5,smOqcIn:21222,smOqcNg:0,lgOqcIn:23654,lgOqcNg:0},
+  {date:"08/08",smIn:20619,smKnNg:0,smOmmNg:0,lgIn:21140,lgKnNg:23,lgOmmNg:17,smOqcIn:22158,smOqcNg:0,lgOqcIn:20151,lgOqcNg:0},
+  {date:"08/09",smIn:24264,smKnNg:0,smOmmNg:0,lgIn:23758,lgKnNg:23,lgOmmNg:20,smOqcIn:22200,smOqcNg:0,lgOqcIn:20645,lgOqcNg:0},
+  {date:"08/12",smIn:0,smKnNg:0,smOmmNg:0,lgIn:17842,lgKnNg:18,lgOmmNg:11,smOqcIn:0,smOqcNg:0,lgOqcIn:18165,lgOqcNg:0},
+  {date:"08/13",smIn:16573,smKnNg:0,smOmmNg:0,lgIn:18283,lgKnNg:20,lgOmmNg:14,smOqcIn:7512,smOqcNg:0,lgOqcIn:14684,lgOqcNg:0},
+  {date:"08/14",smIn:16567,smKnNg:0,smOmmNg:0,lgIn:16084,lgKnNg:12,lgOmmNg:7,smOqcIn:14440,smOqcNg:0,lgOqcIn:13601,lgOqcNg:0},
+  {date:"08/15",smIn:18326,smKnNg:0,smOmmNg:0,lgIn:18083,lgKnNg:3,lgOmmNg:3,smOqcIn:18967,smOqcNg:0,lgOqcIn:21494,lgOqcNg:0},
+  {date:"08/16",smIn:20102,smKnNg:0,smOmmNg:0,lgIn:22381,lgKnNg:2,lgOmmNg:2,smOqcIn:23634,smOqcNg:0,lgOqcIn:19835,lgOqcNg:0},
+  {date:"08/17",smIn:20855,smKnNg:0,smOmmNg:0,lgIn:19827,lgKnNg:0,lgOmmNg:0,smOqcIn:19861,smOqcNg:0,lgOqcIn:20376,lgOqcNg:0},
+  {date:"08/18",smIn:18491,smKnNg:0,smOmmNg:0,lgIn:20101,lgKnNg:5,lgOmmNg:5,smOqcIn:19412,smOqcNg:0,lgOqcIn:19077,lgOqcNg:0},
+  {date:"08/19",smIn:14972,smKnNg:0,smOmmNg:0,lgIn:20305,lgKnNg:3,lgOmmNg:3,smOqcIn:18668,smOqcNg:0,lgOqcIn:22580,lgOqcNg:0},
+  {date:"08/20",smIn:18046,smKnNg:0,smOmmNg:0,lgIn:20176,lgKnNg:2,lgOmmNg:0,smOqcIn:19144,smOqcNg:0,lgOqcIn:20519,lgOqcNg:0},
+  {date:"08/21",smIn:20945,smKnNg:0,smOmmNg:0,lgIn:21141,lgKnNg:0,lgOmmNg:0,smOqcIn:18375,smOqcNg:0,lgOqcIn:19106,lgOqcNg:0},
+  {date:"08/22",smIn:19782,smKnNg:0,smOmmNg:0,lgIn:21689,lgKnNg:6,lgOmmNg:0,smOqcIn:21152,smOqcNg:0,lgOqcIn:18878,lgOqcNg:0},
+  {date:"08/23",smIn:23934,smKnNg:0,smOmmNg:0,lgIn:21182,lgKnNg:1,lgOmmNg:0,smOqcIn:23072,smOqcNg:0,lgOqcIn:18720,lgOqcNg:0},
+  {date:"08/24",smIn:21707,smKnNg:0,smOmmNg:0,lgIn:20405,lgKnNg:10,lgOmmNg:0,smOqcIn:24663,smOqcNg:0,lgOqcIn:22344,lgOqcNg:0},
+  {date:"08/25",smIn:23774,smKnNg:0,smOmmNg:0,lgIn:22153,lgKnNg:12,lgOmmNg:0,smOqcIn:22937,smOqcNg:0,lgOqcIn:23625,lgOqcNg:0},
+  {date:"08/26",smIn:25595,smKnNg:0,smOmmNg:0,lgIn:22763,lgKnNg:0,lgOmmNg:0,smOqcIn:24831,smOqcNg:0,lgOqcIn:21907,lgOqcNg:0},
+  {date:"08/27",smIn:25304,smKnNg:0,smOmmNg:0,lgIn:22676,lgKnNg:0,lgOmmNg:0,smOqcIn:25389,smOqcNg:0,lgOqcIn:23546,lgOqcNg:0},
+  {date:"08/28",smIn:24160,smKnNg:0,smOmmNg:0,lgIn:22382,lgKnNg:0,lgOmmNg:0,smOqcIn:24342,smOqcNg:0,lgOqcIn:19454,lgOqcNg:0},
+  {date:"08/29",smIn:23389,smKnNg:0,smOmmNg:0,lgIn:18275,lgKnNg:12,lgOmmNg:0,smOqcIn:25899,smOqcNg:0,lgOqcIn:20628,lgOqcNg:0},
+  {date:"08/31",smIn:24825,smKnNg:0,smOmmNg:0,lgIn:20481,lgKnNg:4,lgOmmNg:0,smOqcIn:28550,smOqcNg:0,lgOqcIn:16972,lgOqcNg:0},
+  {date:"09/01",smIn:23283,smKnNg:0,smOmmNg:0,lgIn:21946,lgKnNg:1,lgOmmNg:0,smOqcIn:18505,smOqcNg:0,lgOqcIn:22319,lgOqcNg:0},
+  {date:"09/02",smIn:24665,smKnNg:0,smOmmNg:0,lgIn:20670,lgKnNg:1,lgOmmNg:0,smOqcIn:24152,smOqcNg:0,lgOqcIn:22220,lgOqcNg:0},
+  {date:"09/03",smIn:23383,smKnNg:0,smOmmNg:0,lgIn:22301,lgKnNg:5,lgOmmNg:0,smOqcIn:23375,smOqcNg:0,lgOqcIn:23376,lgOqcNg:0},
+  {date:"09/04",smIn:26144,smKnNg:0,smOmmNg:0,lgIn:22470,lgKnNg:3,lgOmmNg:0,smOqcIn:22215,smOqcNg:0,lgOqcIn:21319,lgOqcNg:0},
+  {date:"09/05",smIn:25981,smKnNg:0,smOmmNg:0,lgIn:21218,lgKnNg:0,lgOmmNg:0,smOqcIn:22332,smOqcNg:0,lgOqcIn:17456,lgOqcNg:0},
+  {date:"09/06",smIn:23931,smKnNg:0,smOmmNg:0,lgIn:22678,lgKnNg:3,lgOmmNg:0,smOqcIn:24584,smOqcNg:0,lgOqcIn:23951,lgOqcNg:0},
+  {date:"09/07",smIn:22797,smKnNg:0,smOmmNg:0,lgIn:22514,lgKnNg:0,lgOmmNg:0,smOqcIn:21623,smOqcNg:0,lgOqcIn:24916,lgOqcNg:0},
+  {date:"09/08",smIn:25912,smKnNg:0,smOmmNg:0,lgIn:24199,lgKnNg:6,lgOmmNg:0,smOqcIn:24180,smOqcNg:0,lgOqcIn:23941,lgOqcNg:0},
+];
+
+/* JGP CHARTS */
+const jgpLgDailyChart = new Chart(document.getElementById('jgp-lg-daily'), {
+  type:'bar',
+  data:{
+    labels: jgpDaily.map(d=>d.date),
+    datasets:[
+      {label:'Keyence Flagged', data:jgpDaily.map(d=>d.lgKnNg),
+       backgroundColor:'rgba(255,159,10,0.65)', borderRadius:2},
+      {label:'OMM Confirmed NG', data:jgpDaily.map(d=>d.lgOmmNg),
+       backgroundColor:'rgba(255,59,48,0.7)', borderRadius:2},
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+    scales:{
+      x:{ticks:{font:{size:9},maxRotation:60,minRotation:45},grid:{color:'rgba(0,0,0,0.04)'}},
+      y:{beginAtZero:true,title:{display:true,text:'LG IQC NG Count',font:{size:10},color:'#636366'},
+         ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.06)'}}
+    }
+  }
+});
+
+const jgpSmDailyChart = new Chart(document.getElementById('jgp-sm-daily'), {
+  type:'bar',
+  data:{
+    labels: jgpDaily.map(d=>d.date),
+    datasets:[
+      {label:'Keyence Flagged', data:jgpDaily.map(d=>d.smKnNg),
+       backgroundColor:'rgba(94,92,230,0.65)', borderRadius:2},
+      {label:'OMM Confirmed NG', data:jgpDaily.map(d=>d.smOmmNg),
+       backgroundColor:'rgba(255,59,48,0.7)', borderRadius:2},
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+    scales:{
+      x:{ticks:{font:{size:9},maxRotation:60,minRotation:45},grid:{color:'rgba(0,0,0,0.04)'}},
+      y:{beginAtZero:true,title:{display:true,text:'SM IQC NG Count',font:{size:10},color:'#636366'},
+         ticks:{font:{size:10},stepSize:1},grid:{color:'rgba(0,0,0,0.06)'}}
+    }
+  }
+});
+
+(function(){
+  const lgOmm = jgpDaily.map(d=>d.lgOmmNg);
+  const ma = lgOmm.map((_,i)=>{
+    const win=lgOmm.slice(Math.max(0,i-4),i+1);
+    return +(win.reduce((s,v)=>s+v,0)/win.length).toFixed(2);
+  });
+  new Chart(document.getElementById('jgp-trend'),{
+    type:'bar',
+    data:{
+      labels:jgpDaily.map(d=>d.date),
+      datasets:[
+        {type:'bar',label:'LG OMM Confirmed NG',
+         data:lgOmm,
+         backgroundColor:lgOmm.map(v=>v===0?'rgba(48,209,88,0.5)':'rgba(255,59,48,0.55)'),
+         borderRadius:2, order:2},
+        {type:'line',label:'5-Day Moving Avg',
+         data:ma,
+         borderColor:'rgba(0,113,227,0.9)',backgroundColor:'transparent',
+         borderWidth:2.5,pointRadius:0,tension:0.4,order:1},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:60,minRotation:45},grid:{color:'rgba(0,0,0,0.04)'}},
+        y:{beginAtZero:true,title:{display:true,text:'LG OMM NG Count',font:{size:10},color:'#636366'},
+           ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.06)'}}
+      }
+    }
+  });
+})();
+
+/* JGP TABLE */
+(function buildJgpTable(){
+  const hdr=`<thead><tr>
+    <th>Date</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">Small IQC</th>
+    <th colspan="4" style="text-align:center;border-left:2px solid #e5e5ea">Large IQC</th>
+    <th style="text-align:center;border-left:2px solid #e5e5ea">OQC</th>
+  </tr><tr>
+    <th></th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>Keyence</th><th>OMM NG</th><th>Rate</th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>Keyence</th><th>OMM NG</th><th>Rate</th>
+    <th style="border-left:2px solid #e5e5ea">Both=0</th>
+  </tr></thead>`;
+  let rows='';
+  jgpDaily.forEach(d=>{
+    const sr=(d.smIn>0?(d.smOmmNg/d.smIn*100):0).toFixed(4);
+    const lr=(d.lgIn>0?(d.lgOmmNg/d.lgIn*100):0).toFixed(4);
+    rows+=`<tr>
+      <td><strong>${d.date}</strong></td>
+      <td style="border-left:2px solid #f0f0f0">${d.smIn?d.smIn.toLocaleString():'—'}</td>
+      <td>${d.smKnNg}</td>
+      <td>${d.smOmmNg>0?'<span style="color:var(--red);font-weight:700">'+d.smOmmNg+'</span>':d.smOmmNg}</td>
+      <td class="${rateClass(sr)}">${d.smIn?sr+'%':'—'}</td>
+      <td style="border-left:2px solid #f0f0f0">${d.lgIn?d.lgIn.toLocaleString():'—'}</td>
+      <td>${d.lgKnNg}</td>
+      <td>${d.lgOmmNg>0?'<span style="color:var(--red);font-weight:700">'+d.lgOmmNg+'</span>':d.lgOmmNg}</td>
+      <td class="${rateClass(lr)}">${d.lgIn?lr+'%':'—'}</td>
+      <td class="rate-zero" style="border-left:2px solid #f0f0f0;font-weight:700;color:var(--green)">0</td>
+    </tr>`;
+  });
+  document.getElementById('jgp-table').innerHTML=hdr+'<tbody>'+rows+'</tbody>';
+})();
+
+/* JGP FILTER */
+function filterJGP(){
+  const from=toDate(document.getElementById('jgp-from').value);
+  const to  =toDate(document.getElementById('jgp-to').value);
+  const f=jgpDaily.filter(r=>{const d=parseMMDD(r.date);return d>=from&&d<=to;});
+
+  const smIn  =f.reduce((s,r)=>s+r.smIn,   0);
+  const smOmm =f.reduce((s,r)=>s+r.smOmmNg,0);
+  const smOqc =f.reduce((s,r)=>s+r.smOqcIn,0);
+  const lgIn  =f.reduce((s,r)=>s+r.lgIn,   0);
+  const lgOmm =f.reduce((s,r)=>s+r.lgOmmNg,0);
+  const lgOqc =f.reduce((s,r)=>s+r.lgOqcIn,0);
+
+  document.getElementById('jgp-sm-iqc-in').textContent  =smIn.toLocaleString();
+  document.getElementById('jgp-sm-iqc-b').textContent   =smOmm.toLocaleString();
+  document.getElementById('jgp-sm-iqc-rate').textContent=(smIn>0?(smOmm/smIn*100).toFixed(4):'0.0000')+'% True NG Rate';
+  document.getElementById('jgp-sm-oqc-in').textContent  =smOqc.toLocaleString();
+  document.getElementById('jgp-lg-iqc-in').textContent  =lgIn.toLocaleString();
+  document.getElementById('jgp-lg-iqc-b').textContent   =lgOmm.toLocaleString();
+  document.getElementById('jgp-lg-iqc-rate').textContent=(lgIn>0?(lgOmm/lgIn*100).toFixed(4):'0.0000')+'% True NG Rate';
+  document.getElementById('jgp-lg-oqc-in').textContent  =lgOqc.toLocaleString();
+
+  jgpLgDailyChart.data.labels=f.map(d=>d.date);
+  jgpLgDailyChart.data.datasets[0].data=f.map(d=>d.lgKnNg);
+  jgpLgDailyChart.data.datasets[1].data=f.map(d=>d.lgOmmNg);
+  jgpLgDailyChart.update();
+  jgpSmDailyChart.data.labels=f.map(d=>d.date);
+  jgpSmDailyChart.data.datasets[0].data=f.map(d=>d.smKnNg);
+  jgpSmDailyChart.data.datasets[1].data=f.map(d=>d.smOmmNg);
+  jgpSmDailyChart.update();
+
+  document.getElementById('jgp-filter-note').textContent=
+    f.length<jgpDaily.length?f.length+' days shown':'';
 }
 </script>
 </body>
