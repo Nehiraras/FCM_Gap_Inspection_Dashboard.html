@@ -617,6 +617,18 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
       <strong>JGP LIPO Node Inspection Flow (Hotbar Tilt — IQC Keyence → OMM + OQC):</strong> JGP uses a <strong>two-stage IQC</strong>: Keyence visual screening flags suspects (B-), then OMM dimensionally confirms true NG. OQC is zero throughout for both sizes. <strong>Small IQC:</strong> 21 Keyence flagged → 15 OMM confirmed (71% confirm rate). <strong>Large IQC:</strong> 534 Keyence flagged → 356 OMM confirmed (67% confirm rate). Large NG was concentrated in late July/early August and trended sharply to near-zero by mid-August. OQC confirms the LIPO process itself adds no defects.
     </div>
 
+    <div class="section-title">Weekly NG Rate — IQC Small &amp; Large <span>(Week28–Week37, OMM Confirmed)</span></div>
+    <div class="chart-grid" style="margin-bottom:16px">
+      <div class="chart-card">
+        <h3>IQC Weekly NG Rate (%) <small>· Small vs Large (OMM Confirmed True NG)</small></h3>
+        <div class="chart-wrap"><canvas id="jgp-weekly-rate"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>IQC Weekly NG Count <small>· Small vs Large, OQC = 0 throughout</small></h3>
+        <div class="chart-wrap"><canvas id="jgp-weekly-count"></canvas></div>
+      </div>
+    </div>
+
     <div class="section-title">JGP IQC Daily NG — Large &amp; Small <span>(Keyence Flagged vs OMM Confirmed)</span></div>
     <div class="chart-grid">
       <div class="chart-card">
@@ -1887,6 +1899,76 @@ const jgpDaily = [
   {date:"09/08",smIn:25912,smKnNg:0,smOmmNg:0,lgIn:24199,lgKnNg:6,lgOmmNg:0,smOqcIn:24180,smOqcNg:0,lgOqcIn:23941,lgOqcNg:0},
 ];
 
+/* JGP WEEKLY AGGREGATION */
+function jgpWeekLabel(dateStr) {
+  const [m, d] = dateStr.split('/').map(Number);
+  const dt = new Date(2026, m - 1, d);
+  const dayOfWeek = dt.getDay(); // 0=Sun
+  const monday = new Date(dt);
+  monday.setDate(dt.getDate() - ((dayOfWeek + 6) % 7));
+  const week28Start = new Date(2026, 6, 6); // July 6 = Week28
+  const weekNum = 28 + Math.round((monday - week28Start) / (7 * 86400000));
+  return 'Week' + weekNum;
+}
+function aggregateJgpWeekly(data) {
+  const byWeek = {};
+  data.forEach(r => {
+    const wk = jgpWeekLabel(r.date);
+    if (!byWeek[wk]) byWeek[wk] = {week:wk, smIn:0, smOmmNg:0, lgIn:0, lgOmmNg:0};
+    const w = byWeek[wk];
+    w.smIn += r.smIn; w.smOmmNg += r.smOmmNg;
+    w.lgIn += r.lgIn; w.lgOmmNg += r.lgOmmNg;
+  });
+  const order = ['Week28','Week29','Week30','Week31','Week32','Week33','Week34','Week35','Week36','Week37'];
+  return order.filter(k => byWeek[k]).map(k => byWeek[k]);
+}
+
+const jgpWeeks = aggregateJgpWeekly(jgpDaily);
+
+const jgpWeeklyRateChart = new Chart(document.getElementById('jgp-weekly-rate'), {
+  type:'line',
+  data:{
+    labels: jgpWeeks.map(w=>w.week),
+    datasets:[
+      {label:'Small IQC NG Rate', data:jgpWeeks.map(w=>w.smIn>0?(w.smOmmNg/w.smIn*100):0),
+       borderColor:CC.amber, backgroundColor:CC.amberA, borderWidth:2.5, pointRadius:5,
+       pointBackgroundColor:CC.amber, tension:0.3, fill:true},
+      {label:'Large IQC NG Rate', data:jgpWeeks.map(w=>w.lgIn>0?(w.lgOmmNg/w.lgIn*100):0),
+       borderColor:CC.indigo, backgroundColor:CC.indigoA, borderWidth:2.5, pointRadius:5,
+       pointBackgroundColor:CC.indigo, tension:0.3, fill:true},
+    ]
+  },
+  options:{...baseOpts('NG Rate (%)',0.20),
+    plugins:{
+      legend:{position:'top',labels:{boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(4)}%`}}
+    }
+  }
+});
+
+const jgpWeeklyCountChart = new Chart(document.getElementById('jgp-weekly-count'), {
+  type:'bar',
+  data:{
+    labels: jgpWeeks.map(w=>w.week),
+    datasets:[
+      {label:'Small IQC OMM NG', data:jgpWeeks.map(w=>w.smOmmNg),
+       backgroundColor:'rgba(255,159,10,0.75)', borderRadius:4},
+      {label:'Large IQC OMM NG', data:jgpWeeks.map(w=>w.lgOmmNg),
+       backgroundColor:'rgba(94,92,230,0.65)', borderRadius:4},
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+    scales:{
+      x:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},
+      y:{beginAtZero:true,title:{display:true,text:'NG Count',font:{size:10},color:'#636366'},
+         ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.06)'}}
+    }
+  }
+});
+
 /* JGP CHARTS */
 const jgpLgDailyChart = new Chart(document.getElementById('jgp-lg-daily'), {
   type:'bar',
@@ -2031,6 +2113,16 @@ function filterJGP(){
   jgpSmDailyChart.data.datasets[0].data=f.map(d=>d.smKnNg);
   jgpSmDailyChart.data.datasets[1].data=f.map(d=>d.smOmmNg);
   jgpSmDailyChart.update();
+
+  const wks = aggregateJgpWeekly(f);
+  jgpWeeklyRateChart.data.labels = wks.map(w=>w.week);
+  jgpWeeklyRateChart.data.datasets[0].data = wks.map(w=>w.smIn>0?(w.smOmmNg/w.smIn*100):0);
+  jgpWeeklyRateChart.data.datasets[1].data = wks.map(w=>w.lgIn>0?(w.lgOmmNg/w.lgIn*100):0);
+  jgpWeeklyRateChart.update();
+  jgpWeeklyCountChart.data.labels = wks.map(w=>w.week);
+  jgpWeeklyCountChart.data.datasets[0].data = wks.map(w=>w.smOmmNg);
+  jgpWeeklyCountChart.data.datasets[1].data = wks.map(w=>w.lgOmmNg);
+  jgpWeeklyCountChart.update();
 
   document.getElementById('jgp-filter-note').textContent=
     f.length<jgpDaily.length?f.length+' days shown':'';
