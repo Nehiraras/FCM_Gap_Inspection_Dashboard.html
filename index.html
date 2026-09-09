@@ -120,6 +120,16 @@ tr:hover td { background: #fafafa; }
 .node-content { display: none; }
 .node-content.active { display: block; }
 
+/* DATE FILTER BAR */
+.filter-bar { background: #f2f2f7; border-bottom: 1px solid var(--border); padding: 10px 32px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filter-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.4px; }
+.filter-bar input[type=date] { border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 12px; color: var(--text); background: var(--card); cursor: pointer; }
+.filter-bar input[type=date]:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(0,113,227,0.15); }
+.filter-sep { font-size: 13px; color: var(--text2); }
+.filter-reset { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text2); transition: background 0.15s; }
+.filter-reset:hover { background: var(--border); }
+.filter-note { font-size: 11px; color: var(--blue); font-weight: 600; margin-left: 4px; }
+
 /* FOOTER */
 footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px; }</style>
 </head>
@@ -165,45 +175,54 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
 <!-- ═══════════════════════════════ AVARY TAB ═══════════════════════════════ -->
 <div id="tab-avary" class="tab-content active">
 
+  <div class="filter-bar">
+    <span class="filter-label">Date Range</span>
+    <input type="date" id="av-from" value="2026-07-28" min="2026-07-28" max="2026-09-07" onchange="filterAvary()">
+    <span class="filter-sep">→</span>
+    <input type="date" id="av-to" value="2026-09-07" min="2026-07-28" max="2026-09-07" onchange="filterAvary()">
+    <button class="filter-reset" onclick="resetFilter('av','2026-07-28','2026-09-07')">Reset</button>
+    <span id="av-filter-note" class="filter-note"></span>
+  </div>
+
   <div class="kpi-grid">
     <div class="kpi-card kpi-blue">
       <div class="kpi-label">SM Total Inspected</div>
-      <div class="kpi-value">776,846</div>
-      <div class="kpi-sub">Cumulative as of 9/7</div>
+      <div class="kpi-value" id="av-sm-in">776,846</div>
+      <div class="kpi-sub" id="av-sm-in-sub">Cumulative as of 9/7</div>
     </div>
     <div class="kpi-card kpi-amber">
       <div class="kpi-label">SM CCD B- (Flagged)</div>
-      <div class="kpi-value">2,596</div>
-      <div class="kpi-rate" style="color:var(--amber)">0.33% CCD Fail Rate</div>
+      <div class="kpi-value" id="av-sm-b-val">2,596</div>
+      <div class="kpi-rate" id="av-sm-b-rate" style="color:var(--amber)">0.33% CCD Fail Rate</div>
     </div>
     <div class="kpi-card kpi-red">
       <div class="kpi-label">SM OMM Confirmed NG</div>
-      <div class="kpi-value">667</div>
-      <div class="kpi-rate" style="color:var(--red)">0.09% True NG Rate</div>
+      <div class="kpi-value" id="av-sm-o-val">667</div>
+      <div class="kpi-rate" id="av-sm-o-rate" style="color:var(--red)">0.09% True NG Rate</div>
     </div>
     <div class="kpi-card kpi-blue">
       <div class="kpi-label">LG Total Inspected</div>
-      <div class="kpi-value">738,200</div>
-      <div class="kpi-sub">Cumulative as of 9/7</div>
+      <div class="kpi-value" id="av-lg-in">738,200</div>
+      <div class="kpi-sub" id="av-lg-in-sub">Cumulative as of 9/7</div>
     </div>
     <div class="kpi-card kpi-amber">
       <div class="kpi-label">LG CCD B- (Flagged)</div>
-      <div class="kpi-value">2,015</div>
-      <div class="kpi-rate" style="color:var(--amber)">0.27% CCD Fail Rate</div>
+      <div class="kpi-value" id="av-lg-b-val">2,015</div>
+      <div class="kpi-rate" id="av-lg-b-rate" style="color:var(--amber)">0.27% CCD Fail Rate</div>
     </div>
     <div class="kpi-card kpi-red">
       <div class="kpi-label">LG OMM Confirmed NG</div>
-      <div class="kpi-value">572</div>
-      <div class="kpi-rate" style="color:var(--red)">0.08% True NG Rate</div>
+      <div class="kpi-value" id="av-lg-o-val">572</div>
+      <div class="kpi-rate" id="av-lg-o-rate" style="color:var(--red)">0.08% True NG Rate</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Combined Inspected</div>
-      <div class="kpi-value" style="font-size:22px">1,515,046</div>
+      <div class="kpi-value" id="av-combined" style="font-size:22px">1,515,046</div>
       <div class="kpi-sub">SM + LG total</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">OMM Confirm Rate</div>
-      <div class="kpi-value" style="font-size:22px">~27%</div>
+      <div class="kpi-value" id="av-confirm-rate" style="font-size:22px">~27%</div>
       <div class="kpi-sub">of CCD B- confirmed NG</div>
     </div>
   </div>
@@ -249,45 +268,54 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
 <!-- ═══════════════════════════════ ICT TAB ═══════════════════════════════ -->
 <div id="tab-ict" class="tab-content">
 
+  <div class="filter-bar">
+    <span class="filter-label">Date Range</span>
+    <input type="date" id="ict-from" value="2026-07-06" min="2026-07-06" max="2026-09-06" onchange="filterICT()">
+    <span class="filter-sep">→</span>
+    <input type="date" id="ict-to" value="2026-09-06" min="2026-07-06" max="2026-09-06" onchange="filterICT()">
+    <button class="filter-reset" onclick="resetFilter('ict','2026-07-06','2026-09-06')">Reset</button>
+    <span id="ict-filter-note" class="filter-note"></span>
+  </div>
+
   <div class="kpi-grid">
     <div class="kpi-card kpi-blue">
       <div class="kpi-label">SM Total Inspected</div>
-      <div class="kpi-value">1,430,474</div>
-      <div class="kpi-sub">Cumulative 7/7–9/6</div>
+      <div class="kpi-value" id="ict-sm-in">1,430,474</div>
+      <div class="kpi-sub" id="ict-sm-in-sub">Cumulative 7/7–9/6</div>
     </div>
     <div class="kpi-card kpi-amber">
       <div class="kpi-label">SM CCD B- (Flagged)</div>
-      <div class="kpi-value">9,430</div>
-      <div class="kpi-rate" style="color:var(--amber)">0.66% overall (0.84% post-SOP)</div>
+      <div class="kpi-value" id="ict-sm-b-val">9,430</div>
+      <div class="kpi-rate" id="ict-sm-b-rate" style="color:var(--amber)">0.66% overall (0.84% post-SOP)</div>
     </div>
     <div class="kpi-card kpi-green">
       <div class="kpi-label">SM OMM True NG</div>
-      <div class="kpi-value">0</div>
-      <div class="kpi-rate" style="color:var(--green)">0.00% — All false rejects</div>
+      <div class="kpi-value" id="ict-sm-o-val">0</div>
+      <div class="kpi-rate" id="ict-sm-o-rate" style="color:var(--green)">0.00% — All false rejects</div>
     </div>
     <div class="kpi-card kpi-blue">
       <div class="kpi-label">LG Total Inspected</div>
-      <div class="kpi-value">1,560,252</div>
-      <div class="kpi-sub">Cumulative 7/6–9/6</div>
+      <div class="kpi-value" id="ict-lg-in">1,560,252</div>
+      <div class="kpi-sub" id="ict-lg-in-sub">Cumulative 7/6–9/6</div>
     </div>
     <div class="kpi-card kpi-amber">
       <div class="kpi-label">LG CCD B- (Flagged)</div>
-      <div class="kpi-value">10,642</div>
-      <div class="kpi-rate" style="color:var(--amber)">0.68% overall (0.84% post-SOP)</div>
+      <div class="kpi-value" id="ict-lg-b-val">10,642</div>
+      <div class="kpi-rate" id="ict-lg-b-rate" style="color:var(--amber)">0.68% overall (0.84% post-SOP)</div>
     </div>
     <div class="kpi-card kpi-green">
       <div class="kpi-label">LG OMM True NG</div>
-      <div class="kpi-value">0</div>
-      <div class="kpi-rate" style="color:var(--green)">0.00% — All false rejects</div>
+      <div class="kpi-value" id="ict-lg-o-val">0</div>
+      <div class="kpi-rate" id="ict-lg-o-rate" style="color:var(--green)">0.00% — All false rejects</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Combined Inspected</div>
-      <div class="kpi-value" style="font-size:22px">~2.99M+</div>
+      <div class="kpi-value" id="ict-combined" style="font-size:22px">~2.99M+</div>
       <div class="kpi-sub">SM + LG total</div>
     </div>
     <div class="kpi-card kpi-green">
       <div class="kpi-label">True Defect Rate</div>
-      <div class="kpi-value" style="font-size:22px;color:#1c8f3a">0.00%</div>
+      <div class="kpi-value" id="ict-defect-rate" style="font-size:22px;color:#1c8f3a">0.00%</div>
       <div class="kpi-sub">Zero confirmed NGs</div>
     </div>
   </div>
@@ -340,45 +368,54 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
 <!-- ═══════════════════ DISPLAY NODE — LGD ═══════════════════ -->
 <div id="node-lgd" class="node-content">
 
+  <div class="filter-bar" style="padding-left:32px">
+    <span class="filter-label">Date Range</span>
+    <input type="date" id="lgd-from" value="2026-08-18" min="2026-08-18" max="2026-09-06" onchange="filterLGD()">
+    <span class="filter-sep">→</span>
+    <input type="date" id="lgd-to" value="2026-09-06" min="2026-08-18" max="2026-09-06" onchange="filterLGD()">
+    <button class="filter-reset" onclick="resetFilter('lgd','2026-08-18','2026-09-06')">Reset</button>
+    <span id="lgd-filter-note" class="filter-note"></span>
+  </div>
+
   <div class="kpi-grid" style="padding:24px 32px 0">
     <div class="kpi-card kpi-blue">
       <div class="kpi-label">D191 Total Inspected</div>
-      <div class="kpi-value">868,597</div>
-      <div class="kpi-sub">Cumulative 8/18–9/6</div>
+      <div class="kpi-value" id="lgd-d191-in">868,597</div>
+      <div class="kpi-sub" id="lgd-d191-in-sub">Cumulative 8/18–9/6</div>
     </div>
     <div class="kpi-card kpi-amber">
       <div class="kpi-label">D191 CCD B- (Flagged)</div>
-      <div class="kpi-value">311</div>
-      <div class="kpi-rate" style="color:var(--amber)">0.036% CCD Fail Rate</div>
+      <div class="kpi-value" id="lgd-d191-b-val">311</div>
+      <div class="kpi-rate" id="lgd-d191-b-rate" style="color:var(--amber)">0.036% CCD Fail Rate</div>
     </div>
     <div class="kpi-card kpi-green">
       <div class="kpi-label">D191 OMM Confirmed NG</div>
-      <div class="kpi-value">4</div>
-      <div class="kpi-rate" style="color:var(--green)">0.00046% True NG Rate</div>
+      <div class="kpi-value" id="lgd-d191-o-val">4</div>
+      <div class="kpi-rate" id="lgd-d191-o-rate" style="color:var(--green)">0.00046% True NG Rate</div>
     </div>
     <div class="kpi-card kpi-blue">
       <div class="kpi-label">D192 Total Inspected</div>
-      <div class="kpi-value">862,755</div>
-      <div class="kpi-sub">Cumulative 8/18–9/6</div>
+      <div class="kpi-value" id="lgd-d192-in">862,755</div>
+      <div class="kpi-sub" id="lgd-d192-in-sub">Cumulative 8/18–9/6</div>
     </div>
     <div class="kpi-card kpi-amber">
       <div class="kpi-label">D192 CCD B- (Flagged)</div>
-      <div class="kpi-value">1,150</div>
-      <div class="kpi-rate" style="color:var(--amber)">0.133% CCD Fail Rate</div>
+      <div class="kpi-value" id="lgd-d192-b-val">1,150</div>
+      <div class="kpi-rate" id="lgd-d192-b-rate" style="color:var(--amber)">0.133% CCD Fail Rate</div>
     </div>
     <div class="kpi-card kpi-green">
       <div class="kpi-label">D192 OMM Confirmed NG</div>
-      <div class="kpi-value">5</div>
-      <div class="kpi-rate" style="color:var(--green)">0.00058% True NG Rate</div>
+      <div class="kpi-value" id="lgd-d192-o-val">5</div>
+      <div class="kpi-rate" id="lgd-d192-o-rate" style="color:var(--green)">0.00058% True NG Rate</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Combined Inspected</div>
-      <div class="kpi-value" style="font-size:22px">1,731,352</div>
+      <div class="kpi-value" id="lgd-combined" style="font-size:22px">1,731,352</div>
       <div class="kpi-sub">D191 + D192 total</div>
     </div>
     <div class="kpi-card kpi-green">
       <div class="kpi-label">OMM Confirm Rate</div>
-      <div class="kpi-value" style="font-size:22px;color:#1c8f3a">0.62%</div>
+      <div class="kpi-value" id="lgd-confirm-rate" style="font-size:22px;color:#1c8f3a">0.62%</div>
       <div class="kpi-sub">of CCD B- confirmed NG</div>
     </div>
   </div>
@@ -709,7 +746,7 @@ const aSmOMM  = avaryDaily.map(d=>+pct(d.smO,d.smIn));
 const aLgCCD  = avaryDaily.map(d=>+pct(d.lgB,d.lgIn));
 const aLgOMM  = avaryDaily.map(d=>+pct(d.lgO,d.lgIn));
 
-new Chart(document.getElementById('avary-sm-rate'), {
+const avarySmChart = new Chart(document.getElementById('avary-sm-rate'), {
   type:'line',
   data:{
     labels: aLabels,
@@ -723,7 +760,7 @@ new Chart(document.getElementById('avary-sm-rate'), {
   options: baseOpts('Rate (% of input)',1.3)
 });
 
-new Chart(document.getElementById('avary-lg-rate'), {
+const avaryLgChart = new Chart(document.getElementById('avary-lg-rate'), {
   type:'line',
   data:{
     labels: aLabels,
@@ -738,7 +775,7 @@ new Chart(document.getElementById('avary-lg-rate'), {
 });
 
 // Volume / count chart — SM and LG B- combined, with OMM NG overlay
-new Chart(document.getElementById('avary-volume'), {
+const avaryVolChart = new Chart(document.getElementById('avary-volume'), {
   type:'bar',
   data:{
     labels: aLabels,
@@ -774,7 +811,7 @@ const sopLgIdx = ictLgData.findIndex(d=>d.date==='07/30');
 const smOpts = {...baseOpts('CCD B- Rate (%)',1.1), sopIndex: sopSmIdx};
 smOpts.plugins = {...smOpts.plugins};
 
-new Chart(document.getElementById('ict-sm-rate'), {
+const ictSmChart = new Chart(document.getElementById('ict-sm-rate'), {
   type:'line',
   data:{
     labels: ictSmData.map(d=>d.date),
@@ -797,7 +834,7 @@ new Chart(document.getElementById('ict-sm-rate'), {
   }
 });
 
-new Chart(document.getElementById('ict-lg-rate'), {
+const ictLgChart = new Chart(document.getElementById('ict-lg-rate'), {
   type:'line',
   data:{
     labels: ictLgData.map(d=>d.date),
@@ -821,7 +858,7 @@ new Chart(document.getElementById('ict-lg-rate'), {
 });
 
 // ICT Volume chart
-new Chart(document.getElementById('ict-volume'), {
+const ictVolChart = new Chart(document.getElementById('ict-volume'), {
   type:'bar',
   data:{
     labels: ictSmData.map(d=>d.date),
@@ -1025,7 +1062,7 @@ const lgdD192 = [
 /* LGD CHARTS */
 function lgdRate(arr){ return arr.map(d=>d.input>0?(d.ccd/d.input*100):0); }
 
-new Chart(document.getElementById('lgd-d191-rate'),{
+const lgdD191Chart = new Chart(document.getElementById('lgd-d191-rate'),{
   type:'line',
   data:{
     labels: lgdD191.map(d=>d.date),
@@ -1047,7 +1084,7 @@ new Chart(document.getElementById('lgd-d191-rate'),{
   }
 });
 
-new Chart(document.getElementById('lgd-d192-rate'),{
+const lgdD192Chart = new Chart(document.getElementById('lgd-d192-rate'),{
   type:'line',
   data:{
     labels: lgdD192.map(d=>d.date),
@@ -1069,7 +1106,7 @@ new Chart(document.getElementById('lgd-d192-rate'),{
   }
 });
 
-new Chart(document.getElementById('lgd-volume'),{
+const lgdVolChart = new Chart(document.getElementById('lgd-volume'),{
   type:'bar',
   data:{
     labels: lgdD191.map(d=>d.date),
@@ -1130,6 +1167,183 @@ function avaryView(v){
   document.getElementById('avary-shift-tbl').style.display = v==='shift'?'':'none';
   document.getElementById('avary-daily-btn').classList.toggle('active',v==='daily');
   document.getElementById('avary-shift-btn').classList.toggle('active',v==='shift');
+}
+
+/* =====================================================================
+   DATE FILTER LOGIC
+   ===================================================================== */
+
+function toDate(s) { return new Date(s); }
+
+function parseAvaryDate(s) {
+  const [m, d] = s.split('/').map(Number);
+  return new Date(2026, m - 1, d);
+}
+
+function parseMMDD(s) {
+  const [m, d] = s.split('/').map(Number);
+  return new Date(2026, m - 1, d);
+}
+
+function resetFilter(prefix, defFrom, defTo) {
+  document.getElementById(prefix + '-from').value = defFrom;
+  document.getElementById(prefix + '-to').value   = defTo;
+  document.getElementById(prefix + '-filter-note').textContent = '';
+  if (prefix === 'av')  filterAvary();
+  if (prefix === 'ict') filterICT();
+  if (prefix === 'lgd') filterLGD();
+}
+
+/* ---- AVARY ---- */
+function filterAvary() {
+  const from = toDate(document.getElementById('av-from').value);
+  const to   = toDate(document.getElementById('av-to').value);
+  const shifts = avaryShifts.filter(r => {
+    const d = parseAvaryDate(r.date);
+    return d >= from && d <= to;
+  });
+
+  const byDate = {};
+  shifts.forEach(r => {
+    if (!byDate[r.date]) byDate[r.date] = {smIn:0,smB:0,smO:0,lgIn:0,lgB:0,lgO:0};
+    const x = byDate[r.date];
+    x.smIn+=r.smIn; x.smB+=r.smB; x.smO+=r.smO;
+    x.lgIn+=r.lgIn; x.lgB+=r.lgB; x.lgO+=r.lgO;
+  });
+  const daily = Object.values(byDate);
+
+  const smIn = shifts.reduce((s,r)=>s+r.smIn,0);
+  const smB  = shifts.reduce((s,r)=>s+r.smB, 0);
+  const smO  = shifts.reduce((s,r)=>s+r.smO, 0);
+  const lgIn = shifts.reduce((s,r)=>s+r.lgIn,0);
+  const lgB  = shifts.reduce((s,r)=>s+r.lgB, 0);
+  const lgO  = shifts.reduce((s,r)=>s+r.lgO, 0);
+  const totB = smB + lgB, totO = smO + lgO;
+  const cr = totB > 0 ? Math.round(totO / totB * 100) : 0;
+
+  document.getElementById('av-sm-in').textContent      = smIn.toLocaleString();
+  document.getElementById('av-sm-b-val').textContent   = smB.toLocaleString();
+  document.getElementById('av-sm-b-rate').textContent  = (smIn>0?(smB/smIn*100).toFixed(2):'0.00')+'% CCD Fail Rate';
+  document.getElementById('av-sm-o-val').textContent   = smO.toLocaleString();
+  document.getElementById('av-sm-o-rate').textContent  = (smIn>0?(smO/smIn*100).toFixed(2):'0.00')+'% True NG Rate';
+  document.getElementById('av-lg-in').textContent      = lgIn.toLocaleString();
+  document.getElementById('av-lg-b-val').textContent   = lgB.toLocaleString();
+  document.getElementById('av-lg-b-rate').textContent  = (lgIn>0?(lgB/lgIn*100).toFixed(2):'0.00')+'% CCD Fail Rate';
+  document.getElementById('av-lg-o-val').textContent   = lgO.toLocaleString();
+  document.getElementById('av-lg-o-rate').textContent  = (lgIn>0?(lgO/lgIn*100).toFixed(2):'0.00')+'% True NG Rate';
+  document.getElementById('av-combined').textContent   = (smIn+lgIn).toLocaleString();
+  document.getElementById('av-confirm-rate').textContent = '~'+cr+'%';
+
+  const labels = daily.map(d=>d.date);
+  avarySmChart.data.labels = labels;
+  avarySmChart.data.datasets[0].data = daily.map(d=>+pct(d.smB,d.smIn));
+  avarySmChart.data.datasets[1].data = daily.map(d=>+pct(d.smO,d.smIn));
+  avarySmChart.update();
+  avaryLgChart.data.labels = labels;
+  avaryLgChart.data.datasets[0].data = daily.map(d=>+pct(d.lgB,d.lgIn));
+  avaryLgChart.data.datasets[1].data = daily.map(d=>+pct(d.lgO,d.lgIn));
+  avaryLgChart.update();
+  avaryVolChart.data.labels = labels;
+  avaryVolChart.data.datasets[0].data = daily.map(d=>d.smB);
+  avaryVolChart.data.datasets[1].data = daily.map(d=>d.smO);
+  avaryVolChart.data.datasets[2].data = daily.map(d=>d.lgB);
+  avaryVolChart.data.datasets[3].data = daily.map(d=>d.lgO);
+  avaryVolChart.update();
+
+  document.getElementById('av-filter-note').textContent =
+    shifts.length < avaryShifts.length ? daily.length + ' days shown' : '';
+}
+
+/* ---- ICT ---- */
+function filterICT() {
+  const from = toDate(document.getElementById('ict-from').value);
+  const to   = toDate(document.getElementById('ict-to').value);
+
+  const smF = ictSmData.filter(r => { const d=parseMMDD(r.date); return d>=from && d<=to; });
+  const lgF = ictLgData.filter(r => { const d=parseMMDD(r.date); return d>=from && d<=to; });
+
+  const smIn = smF.reduce((s,r)=>s+r.input,  0);
+  const smB  = smF.reduce((s,r)=>s+r.bMinus, 0);
+  const lgIn = lgF.reduce((s,r)=>s+r.input,  0);
+  const lgB  = lgF.reduce((s,r)=>s+r.bMinus, 0);
+  const combined = smIn + lgIn;
+
+  document.getElementById('ict-sm-in').textContent     = smIn.toLocaleString();
+  document.getElementById('ict-sm-b-val').textContent  = smB.toLocaleString();
+  document.getElementById('ict-sm-b-rate').textContent = (smIn>0?(smB/smIn*100).toFixed(2)+'% CCD Fail Rate':'0.00% CCD Fail Rate');
+  document.getElementById('ict-sm-o-val').textContent  = '0';
+  document.getElementById('ict-sm-o-rate').textContent = '0.00% — All false rejects';
+  document.getElementById('ict-lg-in').textContent     = lgIn.toLocaleString();
+  document.getElementById('ict-lg-b-val').textContent  = lgB.toLocaleString();
+  document.getElementById('ict-lg-b-rate').textContent = (lgIn>0?(lgB/lgIn*100).toFixed(2)+'% CCD Fail Rate':'0.00% CCD Fail Rate');
+  document.getElementById('ict-lg-o-val').textContent  = '0';
+  document.getElementById('ict-lg-o-rate').textContent = '0.00% — All false rejects';
+  document.getElementById('ict-combined').textContent  = combined > 1000000
+    ? '~'+(combined/1000000).toFixed(2)+'M+' : combined.toLocaleString();
+  document.getElementById('ict-defect-rate').textContent = '0.00%';
+
+  ictSmChart.data.labels = smF.map(d=>d.date);
+  ictSmChart.data.datasets[0].data = smF.map(d=>d.ccdRate);
+  ictSmChart.update();
+  ictLgChart.data.labels = lgF.map(d=>d.date);
+  ictLgChart.data.datasets[0].data = lgF.map(d=>d.ccdRate);
+  ictLgChart.update();
+  ictVolChart.data.labels = smF.map(d=>d.date);
+  ictVolChart.data.datasets[0].data = smF.map(d=>d.input);
+  ictVolChart.data.datasets[1].data = smF.map((d,i)=>lgF.find(l=>l.date===d.date)?.input||null);
+  ictVolChart.update();
+
+  document.getElementById('ict-filter-note').textContent =
+    smF.length < ictSmData.length ? smF.length + ' days shown' : '';
+}
+
+/* ---- LGD ---- */
+function filterLGD() {
+  const from = toDate(document.getElementById('lgd-from').value);
+  const to   = toDate(document.getElementById('lgd-to').value);
+
+  const d1F = lgdD191.filter(r => { const d=parseMMDD(r.date); return d>=from && d<=to; });
+  const d2F = lgdD192.filter(r => { const d=parseMMDD(r.date); return d>=from && d<=to; });
+
+  const d1In  = d1F.reduce((s,r)=>s+r.input,0);
+  const d1Ccd = d1F.reduce((s,r)=>s+r.ccd,  0);
+  const d1Omm = d1F.reduce((s,r)=>s+r.omm,  0);
+  const d2In  = d2F.reduce((s,r)=>s+r.input,0);
+  const d2Ccd = d2F.reduce((s,r)=>s+r.ccd,  0);
+  const d2Omm = d2F.reduce((s,r)=>s+r.omm,  0);
+  const totIn = d1In + d2In;
+  const totCcd = d1Ccd + d2Ccd;
+  const totOmm = d1Omm + d2Omm;
+  const cr = totCcd > 0 ? (totOmm/totCcd*100).toFixed(2) : '0.00';
+
+  document.getElementById('lgd-d191-in').textContent     = d1In.toLocaleString();
+  document.getElementById('lgd-d191-b-val').textContent  = d1Ccd.toLocaleString();
+  document.getElementById('lgd-d191-b-rate').textContent = (d1In>0?(d1Ccd/d1In*100).toFixed(3):'0.000')+'% CCD Fail Rate';
+  document.getElementById('lgd-d191-o-val').textContent  = d1Omm.toLocaleString();
+  document.getElementById('lgd-d191-o-rate').textContent = (d1In>0?(d1Omm/d1In*100).toFixed(5):'0.00000')+'% True NG Rate';
+  document.getElementById('lgd-d192-in').textContent     = d2In.toLocaleString();
+  document.getElementById('lgd-d192-b-val').textContent  = d2Ccd.toLocaleString();
+  document.getElementById('lgd-d192-b-rate').textContent = (d2In>0?(d2Ccd/d2In*100).toFixed(3):'0.000')+'% CCD Fail Rate';
+  document.getElementById('lgd-d192-o-val').textContent  = d2Omm.toLocaleString();
+  document.getElementById('lgd-d192-o-rate').textContent = (d2In>0?(d2Omm/d2In*100).toFixed(5):'0.00000')+'% True NG Rate';
+  document.getElementById('lgd-combined').textContent    = totIn.toLocaleString();
+  document.getElementById('lgd-confirm-rate').textContent = cr+'%';
+
+  lgdD191Chart.data.labels = d1F.map(d=>d.date);
+  lgdD191Chart.data.datasets[0].data = d1F.map(d=>d.input>0?d.ccd/d.input*100:0);
+  lgdD191Chart.data.datasets[0].pointBackgroundColor = d1F.map(d=>d.omm>0?CC.red:CC.amber);
+  lgdD191Chart.update();
+  lgdD192Chart.data.labels = d2F.map(d=>d.date);
+  lgdD192Chart.data.datasets[0].data = d2F.map(d=>d.input>0?d.ccd/d.input*100:0);
+  lgdD192Chart.data.datasets[0].pointBackgroundColor = d2F.map(d=>d.omm>0?CC.red:CC.indigo);
+  lgdD192Chart.update();
+  lgdVolChart.data.labels = d1F.map(d=>d.date);
+  lgdVolChart.data.datasets[0].data = d1F.map(d=>d.input);
+  lgdVolChart.data.datasets[1].data = d1F.map((_,i)=>d2F[i]?d2F[i].input:null);
+  lgdVolChart.update();
+
+  document.getElementById('lgd-filter-note').textContent =
+    d1F.length < lgdD191.length ? d1F.length + ' days shown' : '';
 }
 </script>
 </body>
