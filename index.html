@@ -163,6 +163,7 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
 <div class="node-switcher">
   <button class="node-btn active" onclick="switchNode('pcba')">PCBA Node Inspection</button>
   <button class="node-btn" onclick="switchNode('lgd')">Display Node Inspection</button>
+  <button class="node-btn" onclick="switchNode('lipo')">LIPO Node Inspection</button>
 </div>
 
 <div id="node-pcba" class="node-content active">
@@ -453,7 +454,97 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
       </div>
     </div>
   </div>
-</div><!-- end node-lgd -->X3587 FCM Lift-Up Gap Inspection Dashboard · Generated Sep 7, 2026 · USL: 50 µm · Vendors: Avary, ICT (Luxshare)</footer>
+</div><!-- end node-lgd -->
+
+<!-- ═══════════════════ LIPO NODE ═══════════════════ -->
+<div id="node-lipo" class="node-content">
+
+  <div class="filter-bar" style="padding-left:32px">
+    <span class="filter-label">Date Range</span>
+    <input type="date" id="lipo-from" value="2026-07-09" min="2026-07-09" max="2026-09-08" onchange="filterLIPO()">
+    <span class="filter-sep">→</span>
+    <input type="date" id="lipo-to" value="2026-09-08" min="2026-07-09" max="2026-09-08" onchange="filterLIPO()">
+    <button class="filter-reset" onclick="resetFilter('lipo','2026-07-09','2026-09-08')">Reset</button>
+    <span id="lipo-filter-note" class="filter-note"></span>
+  </div>
+
+  <div class="kpi-grid" style="padding:24px 32px 0">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">Small (O102) IQC Input</div>
+      <div class="kpi-value" id="lipo-sm-iqc-in">935,288</div>
+      <div class="kpi-sub" id="lipo-sm-iqc-in-sub">Cumulative 7/9–9/8</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-label">Small IQC B- (NG)</div>
+      <div class="kpi-value" id="lipo-sm-iqc-b">61</div>
+      <div class="kpi-rate" id="lipo-sm-iqc-rate" style="color:var(--amber)">0.0065% B- Rate</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">Large (O202) IQC Input</div>
+      <div class="kpi-value" id="lipo-lg-iqc-in">950,080</div>
+      <div class="kpi-sub" id="lipo-lg-iqc-in-sub">Cumulative 7/9–9/8</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-label">Large IQC B- (NG)</div>
+      <div class="kpi-value" id="lipo-lg-iqc-b">118</div>
+      <div class="kpi-rate" id="lipo-lg-iqc-rate" style="color:var(--amber)">0.0124% B- Rate</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Small (O102) OQC Input</div>
+      <div class="kpi-value" id="lipo-sm-oqc-in">889,272</div>
+      <div class="kpi-sub">Post-process inspection</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Small OQC B- (NG)</div>
+      <div class="kpi-value" id="lipo-sm-oqc-b">0</div>
+      <div class="kpi-rate" id="lipo-sm-oqc-rate" style="color:var(--green)">0.000% ✓ Zero NG</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Large (O202) OQC Input</div>
+      <div class="kpi-value" id="lipo-lg-oqc-in">859,388</div>
+      <div class="kpi-sub">Post-process inspection</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Large OQC B- (NG)</div>
+      <div class="kpi-value" id="lipo-lg-oqc-b">0</div>
+      <div class="kpi-rate" id="lipo-lg-oqc-rate" style="color:var(--green)">0.000% ✓ Zero NG</div>
+    </div>
+  </div>
+
+  <div style="padding:0 32px">
+    <div class="info-box" style="margin-top:20px">
+      <strong>LIPO Node Inspection Flow (Hotbar Tilt — IQC &amp; OQC):</strong> Inspection is performed at two stages: <strong>IQC</strong> (incoming quality control, before the LIPO process begins) and <strong>OQC</strong> (outgoing quality control, after the process). B- grade = NG. Data covers <strong>Small (O102)</strong> and <strong>Large (O202)</strong> sizes. Key finding: <strong>OQC shows zero B- NG across both sizes throughout the entire run</strong>, confirming the LIPO process itself does not introduce defects. All B- failures are caught at IQC — Small: 61 total (0.007%), Large: 118 total (0.012%). Week 34 starts 8/17.
+    </div>
+
+    <div class="section-title">Weekly B- Rate — IQC Small &amp; Large <span>(Week28–Week37, IQC only)</span></div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>IQC Weekly B- Rate (%) <small>· Small (O102) vs Large (O202)</small></h3>
+        <div class="chart-wrap"><canvas id="lipo-weekly-rate"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>IQC Weekly B- Count <small>· Small vs Large, OQC = 0 throughout</small></h3>
+        <div class="chart-wrap"><canvas id="lipo-weekly-count"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:16px">
+      <h3>Daily B- Count — IQC Small &amp; Large <small>(all days with inspections)</small></h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="lipo-daily-chart"></canvas></div>
+    </div>
+
+    <div class="section-title">Weekly Summary Table — LIPO IQC</div>
+    <div class="table-wrap" style="margin-bottom:48px">
+      <div class="table-controls">
+        <h3>LIPO Hotbar Tilt IQC — Weekly Data</h3>
+        <div style="font-size:11px;color:var(--text2)">OQC B- = 0 all weeks · B- = NG</div>
+      </div>
+      <div class="scroll-table">
+        <table id="lipo-table"></table>
+      </div>
+    </div>
+  </div>
+</div><!-- end node-lipo -->X3587 FCM Lift-Up Gap Inspection Dashboard · Generated Sep 7, 2026 · USL: 50 µm · Vendors: Avary, ICT (Luxshare)</footer>
 
 <script>
 /* =====================================================================
@@ -1007,7 +1098,10 @@ function switchTab(id){
 }
 
 function switchNode(id){
-  document.querySelectorAll('.node-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(id==='pcba'?'pcba':'display')));
+  document.querySelectorAll('.node-btn').forEach(b=>{
+    const map = {'pcba':'pcba','lgd':'display','lipo':'lipo'};
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(map[id]));
+  });
   document.querySelectorAll('.node-content').forEach(c=>c.classList.toggle('active',c.id==='node-'+id));
 }
 
@@ -1192,6 +1286,7 @@ function resetFilter(prefix, defFrom, defTo) {
   if (prefix === 'av')  filterAvary();
   if (prefix === 'ict') filterICT();
   if (prefix === 'lgd') filterLGD();
+  if (prefix === 'lipo') filterLIPO();
 }
 
 /* ---- AVARY ---- */
@@ -1344,6 +1439,229 @@ function filterLGD() {
 
   document.getElementById('lgd-filter-note').textContent =
     d1F.length < lgdD191.length ? d1F.length + ' days shown' : '';
+}
+
+/* =====================================================================
+   LIPO NODE DATA
+   ===================================================================== */
+const lipoDaily = [
+  {date:"07/09",week:"Week28",smIn:7784,smB:6,smOqcIn:0,smOqcB:0,lgIn:4032,lgB:3,lgOqcIn:0,lgOqcB:0},
+  {date:"07/10",week:"Week28",smIn:4833,smB:0,smOqcIn:433,smOqcB:0,lgIn:5980,lgB:4,lgOqcIn:0,lgOqcB:0},
+  {date:"07/11",week:"Week28",smIn:7208,smB:6,smOqcIn:3569,smOqcB:0,lgIn:0,lgB:0,lgOqcIn:2347,lgOqcB:0},
+  {date:"07/13",week:"Week29",smIn:6872,smB:0,smOqcIn:3818,smOqcB:0,lgIn:5757,lgB:0,lgOqcIn:5163,lgOqcB:0},
+  {date:"07/14",week:"Week29",smIn:4879,smB:0,smOqcIn:10047,smOqcB:0,lgIn:8320,lgB:0,lgOqcIn:6424,lgOqcB:0},
+  {date:"07/15",week:"Week29",smIn:9587,smB:0,smOqcIn:8558,smOqcB:0,lgIn:7038,lgB:0,lgOqcIn:6171,lgOqcB:0},
+  {date:"07/16",week:"Week29",smIn:4709,smB:3,smOqcIn:6845,smOqcB:0,lgIn:10782,lgB:3,lgOqcIn:3717,lgOqcB:0},
+  {date:"07/17",week:"Week29",smIn:8136,smB:0,smOqcIn:8826,smOqcB:0,lgIn:9221,lgB:0,lgOqcIn:4244,lgOqcB:0},
+  {date:"07/18",week:"Week29",smIn:9555,smB:0,smOqcIn:8235,smOqcB:0,lgIn:7537,lgB:0,lgOqcIn:8710,lgOqcB:0},
+  {date:"07/20",week:"Week30",smIn:8481,smB:0,smOqcIn:11596,smOqcB:0,lgIn:9004,lgB:0,lgOqcIn:7664,lgOqcB:0},
+  {date:"07/21",week:"Week30",smIn:9651,smB:0,smOqcIn:10016,smOqcB:0,lgIn:12408,lgB:0,lgOqcIn:6142,lgOqcB:0},
+  {date:"07/22",week:"Week30",smIn:9708,smB:6,smOqcIn:11358,smOqcB:0,lgIn:16395,lgB:7,lgOqcIn:14450,lgOqcB:0},
+  {date:"07/23",week:"Week30",smIn:19062,smB:0,smOqcIn:11325,smOqcB:0,lgIn:17404,lgB:0,lgOqcIn:19199,lgOqcB:0},
+  {date:"07/24",week:"Week30",smIn:17794,smB:2,smOqcIn:15102,smOqcB:0,lgIn:20351,lgB:4,lgOqcIn:18338,lgOqcB:0},
+  {date:"07/25",week:"Week30",smIn:21917,smB:0,smOqcIn:12835,smOqcB:0,lgIn:6762,lgB:7,lgOqcIn:18288,lgOqcB:0},
+  {date:"07/27",week:"Week31",smIn:19523,smB:0,smOqcIn:17229,smOqcB:0,lgIn:18840,lgB:0,lgOqcIn:12748,lgOqcB:0},
+  {date:"07/28",week:"Week31",smIn:19573,smB:0,smOqcIn:17776,smOqcB:0,lgIn:16512,lgB:0,lgOqcIn:18380,lgOqcB:0},
+  {date:"07/29",week:"Week31",smIn:11955,smB:3,smOqcIn:20462,smOqcB:0,lgIn:24198,lgB:19,lgOqcIn:17102,lgOqcB:0},
+  {date:"07/30",week:"Week31",smIn:12424,smB:0,smOqcIn:14688,smOqcB:0,lgIn:20821,lgB:0,lgOqcIn:15557,lgOqcB:0},
+  {date:"07/31",week:"Week31",smIn:2730,smB:3,smOqcIn:17449,smOqcB:0,lgIn:19939,lgB:29,lgOqcIn:16889,lgOqcB:0},
+  {date:"08/01",week:"Week31",smIn:17693,smB:0,smOqcIn:14216,smOqcB:0,lgIn:10143,lgB:0,lgOqcIn:10566,lgOqcB:0},
+  {date:"08/03",week:"Week32",smIn:19944,smB:1,smOqcIn:17085,smOqcB:0,lgIn:18727,lgB:6,lgOqcIn:15720,lgOqcB:0},
+  {date:"08/04",week:"Week32",smIn:17591,smB:0,smOqcIn:17795,smOqcB:0,lgIn:14538,lgB:0,lgOqcIn:16369,lgOqcB:0},
+  {date:"08/05",week:"Week32",smIn:20334,smB:10,smOqcIn:17173,smOqcB:0,lgIn:15693,lgB:0,lgOqcIn:14642,lgOqcB:0},
+  {date:"08/06",week:"Week32",smIn:20139,smB:1,smOqcIn:19797,smOqcB:0,lgIn:17164,lgB:7,lgOqcIn:20010,lgOqcB:0},
+  {date:"08/07",week:"Week32",smIn:19992,smB:4,smOqcIn:18574,smOqcB:0,lgIn:19460,lgB:0,lgOqcIn:19684,lgOqcB:0},
+  {date:"08/08",week:"Week32",smIn:17802,smB:0,smOqcIn:19100,smOqcB:0,lgIn:18802,lgB:0,lgOqcIn:18175,lgOqcB:0},
+  {date:"08/10",week:"Week33",smIn:19121,smB:1,smOqcIn:20083,smOqcB:0,lgIn:16111,lgB:10,lgOqcIn:18993,lgOqcB:0},
+  {date:"08/11",week:"Week33",smIn:22033,smB:2,smOqcIn:20119,smOqcB:0,lgIn:19983,lgB:0,lgOqcIn:20851,lgOqcB:0},
+  {date:"08/12",week:"Week33",smIn:22035,smB:0,smOqcIn:17146,smOqcB:0,lgIn:19646,lgB:0,lgOqcIn:13842,lgOqcB:0},
+  {date:"08/13",week:"Week33",smIn:22906,smB:2,smOqcIn:19842,smOqcB:0,lgIn:19176,lgB:9,lgOqcIn:9959,lgOqcB:0},
+  {date:"08/14",week:"Week33",smIn:21039,smB:0,smOqcIn:19473,smOqcB:0,lgIn:20664,lgB:0,lgOqcIn:16360,lgOqcB:0},
+  {date:"08/15",week:"Week33",smIn:20084,smB:0,smOqcIn:20028,smOqcB:0,lgIn:20184,lgB:0,lgOqcIn:13688,lgOqcB:0},
+  {date:"08/17",week:"Week34",smIn:18829,smB:3,smOqcIn:22619,smOqcB:0,lgIn:19068,lgB:2,lgOqcIn:18023,lgOqcB:0},
+  {date:"08/18",week:"Week34",smIn:12823,smB:0,smOqcIn:18031,smOqcB:0,lgIn:12758,lgB:0,lgOqcIn:20184,lgOqcB:0},
+  {date:"08/19",week:"Week34",smIn:18453,smB:3,smOqcIn:16434,smOqcB:0,lgIn:22252,lgB:2,lgOqcIn:20948,lgOqcB:0},
+  {date:"08/20",week:"Week34",smIn:22386,smB:1,smOqcIn:20420,smOqcB:0,lgIn:22023,lgB:1,lgOqcIn:19846,lgOqcB:0},
+  {date:"08/21",week:"Week34",smIn:22123,smB:0,smOqcIn:22141,smOqcB:0,lgIn:21109,lgB:0,lgOqcIn:20366,lgOqcB:0},
+  {date:"08/22",week:"Week34",smIn:23338,smB:0,smOqcIn:24102,smOqcB:0,lgIn:23145,lgB:0,lgOqcIn:24145,lgOqcB:0},
+  {date:"08/23",week:"Week34",smIn:21039,smB:0,smOqcIn:18551,smOqcB:0,lgIn:19919,lgB:0,lgOqcIn:19150,lgOqcB:0},
+  {date:"08/24",week:"Week35",smIn:20982,smB:0,smOqcIn:24023,smOqcB:0,lgIn:23317,lgB:1,lgOqcIn:24205,lgOqcB:0},
+  {date:"08/25",week:"Week35",smIn:23023,smB:2,smOqcIn:23229,smOqcB:0,lgIn:22739,lgB:2,lgOqcIn:25753,lgOqcB:0},
+  {date:"08/26",week:"Week35",smIn:24528,smB:0,smOqcIn:24022,smOqcB:0,lgIn:21016,lgB:0,lgOqcIn:19786,lgOqcB:0},
+  {date:"08/27",week:"Week35",smIn:23121,smB:0,smOqcIn:23243,smOqcB:0,lgIn:23106,lgB:0,lgOqcIn:24109,lgOqcB:0},
+  {date:"08/28",week:"Week35",smIn:24153,smB:0,smOqcIn:20756,smOqcB:0,lgIn:23377,lgB:0,lgOqcIn:22995,lgOqcB:0},
+  {date:"08/29",week:"Week35",smIn:24670,smB:0,smOqcIn:16820,smOqcB:0,lgIn:22943,lgB:0,lgOqcIn:20184,lgOqcB:0},
+  {date:"08/30",week:"Week35",smIn:19929,smB:0,smOqcIn:20683,smOqcB:0,lgIn:23276,lgB:0,lgOqcIn:21521,lgOqcB:0},
+  {date:"08/31",week:"Week36",smIn:19663,smB:0,smOqcIn:18220,smOqcB:0,lgIn:20985,lgB:0,lgOqcIn:14482,lgOqcB:0},
+  {date:"09/02",week:"Week36",smIn:8593,smB:0,smOqcIn:10501,smOqcB:0,lgIn:14962,lgB:0,lgOqcIn:12603,lgOqcB:0},
+  {date:"09/03",week:"Week36",smIn:24206,smB:2,smOqcIn:15727,smOqcB:0,lgIn:22924,lgB:2,lgOqcIn:15586,lgOqcB:0},
+  {date:"09/04",week:"Week36",smIn:22792,smB:0,smOqcIn:22717,smOqcB:0,lgIn:25145,lgB:0,lgOqcIn:26599,lgOqcB:0},
+  {date:"09/05",week:"Week36",smIn:24658,smB:0,smOqcIn:14222,smOqcB:0,lgIn:24521,lgB:0,lgOqcIn:11485,lgOqcB:0},
+  {date:"09/06",week:"Week36",smIn:11946,smB:0,smOqcIn:11112,smOqcB:0,lgIn:22301,lgB:0,lgOqcIn:16619,lgOqcB:0},
+  {date:"09/07",week:"Week37",smIn:22846,smB:0,smOqcIn:26178,smOqcB:0,lgIn:25535,lgB:0,lgOqcIn:25569,lgOqcB:0},
+  {date:"09/08",week:"Week37",smIn:24093,smB:0,smOqcIn:24923,smOqcB:0,lgIn:22067,lgB:0,lgOqcIn:24838,lgOqcB:0},
+];
+
+const lipoWeekly = [
+  {week:"Week28",smIn:19825,smB:12,smOqcIn:2047,lgIn:10012,lgB:7,lgOqcIn:2347},
+  {week:"Week29",smIn:43738,smB:3,smOqcIn:35385,lgIn:48655,lgB:3,lgOqcIn:34429},
+  {week:"Week30",smIn:86613,smB:8,smOqcIn:59701,lgIn:82324,lgB:18,lgOqcIn:84081},
+  {week:"Week31",smIn:83898,smB:6,smOqcIn:84481,lgIn:110453,lgB:48,lgOqcIn:91242},
+  {week:"Week32",smIn:115802,smB:16,smOqcIn:109524,lgIn:104384,lgB:13,lgOqcIn:104600},
+  {week:"Week33",smIn:127218,smB:5,smOqcIn:116691,lgIn:115764,lgB:19,lgOqcIn:93693},
+  {week:"Week34",smIn:138991,smB:7,smOqcIn:142298,lgIn:140274,lgB:5,lgOqcIn:142662},
+  {week:"Week35",smIn:160406,smB:2,smOqcIn:152776,lgIn:159774,lgB:3,lgOqcIn:158553},
+  {week:"Week36",smIn:111858,smB:2,smOqcIn:92499,lgIn:130838,lgB:2,lgOqcIn:97374},
+  {week:"Week37",smIn:46939,smB:0,smOqcIn:51101,lgIn:47602,lgB:0,lgOqcIn:50407},
+];
+
+/* LIPO CHARTS */
+const lipoWeeklyRateChart = new Chart(document.getElementById('lipo-weekly-rate'), {
+  type:'line',
+  data:{
+    labels: lipoWeekly.map(w=>w.week),
+    datasets:[
+      {label:'Small IQC B- Rate', data:lipoWeekly.map(w=>w.smIn>0?(w.smB/w.smIn*100):0),
+       borderColor:CC.amber, backgroundColor:CC.amberA, borderWidth:2.5, pointRadius:5,
+       pointBackgroundColor:CC.amber, tension:0.3, fill:true},
+      {label:'Large IQC B- Rate', data:lipoWeekly.map(w=>w.lgIn>0?(w.lgB/w.lgIn*100):0),
+       borderColor:CC.indigo, backgroundColor:CC.indigoA, borderWidth:2.5, pointRadius:5,
+       pointBackgroundColor:CC.indigo, tension:0.3, fill:true},
+    ]
+  },
+  options:{...baseOpts('B- Rate (%)',0.08),
+    plugins:{
+      legend:{position:'top',labels:{boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(4)}%`}}
+    }
+  }
+});
+
+const lipoWeeklyCountChart = new Chart(document.getElementById('lipo-weekly-count'), {
+  type:'bar',
+  data:{
+    labels: lipoWeekly.map(w=>w.week),
+    datasets:[
+      {label:'Small IQC B-', data:lipoWeekly.map(w=>w.smB),
+       backgroundColor:'rgba(255,159,10,0.75)', borderRadius:4},
+      {label:'Large IQC B-', data:lipoWeekly.map(w=>w.lgB),
+       backgroundColor:'rgba(94,92,230,0.65)', borderRadius:4},
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+    scales:{
+      x:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},
+      y:{beginAtZero:true,title:{display:true,text:'B- Count',font:{size:10},color:'#636366'},
+         ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.06)'}}
+    }
+  }
+});
+
+const lipoDailyChart = new Chart(document.getElementById('lipo-daily-chart'), {
+  type:'bar',
+  data:{
+    labels: lipoDaily.map(d=>d.date),
+    datasets:[
+      {label:'Small IQC B-', data:lipoDaily.map(d=>d.smB),
+       backgroundColor:'rgba(255,159,10,0.75)', borderRadius:2},
+      {label:'Large IQC B-', data:lipoDaily.map(d=>d.lgB),
+       backgroundColor:'rgba(94,92,230,0.65)', borderRadius:2},
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+    scales:{
+      x:{ticks:{font:{size:9},maxRotation:60,minRotation:45},grid:{color:'rgba(0,0,0,0.04)'}},
+      y:{beginAtZero:true,title:{display:true,text:'Daily B- Count',font:{size:10},color:'#636366'},
+         ticks:{font:{size:10},stepSize:5},grid:{color:'rgba(0,0,0,0.06)'}}
+    }
+  }
+});
+
+/* LIPO TABLE */
+(function buildLipoTable(){
+  const hdr=`<thead><tr>
+    <th>Week</th>
+    <th colspan="3" style="text-align:center;border-left:2px solid #e5e5ea">Small (O102) IQC</th>
+    <th colspan="3" style="text-align:center;border-left:2px solid #e5e5ea">Large (O202) IQC</th>
+    <th style="text-align:center;border-left:2px solid #e5e5ea">OQC B-</th>
+  </tr><tr>
+    <th></th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>B- Count</th><th>B- Rate</th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>B- Count</th><th>B- Rate</th>
+    <th style="border-left:2px solid #e5e5ea">Both Sizes</th>
+  </tr></thead>`;
+  let rows='';
+  lipoWeekly.forEach(w=>{
+    const sr=(w.smIn>0?(w.smB/w.smIn*100):0).toFixed(4);
+    const lr=(w.lgIn>0?(w.lgB/w.lgIn*100):0).toFixed(4);
+    rows+=`<tr>
+      <td><strong>${w.week}</strong></td>
+      <td style="border-left:2px solid #f0f0f0">${w.smIn.toLocaleString()}</td>
+      <td>${w.smB}</td>
+      <td class="${rateClass(sr)}">${sr}%</td>
+      <td style="border-left:2px solid #f0f0f0">${w.lgIn.toLocaleString()}</td>
+      <td>${w.lgB}</td>
+      <td class="${rateClass(lr)}">${lr}%</td>
+      <td class="rate-zero" style="border-left:2px solid #f0f0f0;font-weight:700;color:var(--green)">0</td>
+    </tr>`;
+  });
+  document.getElementById('lipo-table').innerHTML=hdr+'<tbody>'+rows+'</tbody>';
+})();
+
+/* LIPO FILTER */
+function filterLIPO(){
+  const from = toDate(document.getElementById('lipo-from').value);
+  const to   = toDate(document.getElementById('lipo-to').value);
+
+  const filtered = lipoDaily.filter(r=>{
+    const d = parseMMDD(r.date);
+    return d >= from && d <= to;
+  });
+
+  const smIn  = filtered.reduce((s,r)=>s+r.smIn,   0);
+  const smB   = filtered.reduce((s,r)=>s+r.smB,    0);
+  const smOqc = filtered.reduce((s,r)=>s+r.smOqcIn,0);
+  const lgIn  = filtered.reduce((s,r)=>s+r.lgIn,   0);
+  const lgB   = filtered.reduce((s,r)=>s+r.lgB,    0);
+  const lgOqc = filtered.reduce((s,r)=>s+r.lgOqcIn,0);
+
+  document.getElementById('lipo-sm-iqc-in').textContent   = smIn.toLocaleString();
+  document.getElementById('lipo-sm-iqc-b').textContent    = smB.toLocaleString();
+  document.getElementById('lipo-sm-iqc-rate').textContent = (smIn>0?(smB/smIn*100).toFixed(4):'0.0000')+'% B- Rate';
+  document.getElementById('lipo-lg-iqc-in').textContent   = lgIn.toLocaleString();
+  document.getElementById('lipo-lg-iqc-b').textContent    = lgB.toLocaleString();
+  document.getElementById('lipo-lg-iqc-rate').textContent = (lgIn>0?(lgB/lgIn*100).toFixed(4):'0.0000')+'% B- Rate';
+  document.getElementById('lipo-sm-oqc-in').textContent   = smOqc.toLocaleString();
+  document.getElementById('lipo-lg-oqc-in').textContent   = lgOqc.toLocaleString();
+
+  lipoDailyChart.data.labels = filtered.map(d=>d.date);
+  lipoDailyChart.data.datasets[0].data = filtered.map(d=>d.smB);
+  lipoDailyChart.data.datasets[1].data = filtered.map(d=>d.lgB);
+  lipoDailyChart.update();
+
+  const byWeek = {};
+  filtered.forEach(r=>{
+    if(!byWeek[r.week]) byWeek[r.week]={week:r.week,smIn:0,smB:0,lgIn:0,lgB:0};
+    const w=byWeek[r.week]; w.smIn+=r.smIn; w.smB+=r.smB; w.lgIn+=r.lgIn; w.lgB+=r.lgB;
+  });
+  const wks = Object.values(byWeek);
+  lipoWeeklyRateChart.data.labels = wks.map(w=>w.week);
+  lipoWeeklyRateChart.data.datasets[0].data = wks.map(w=>w.smIn>0?(w.smB/w.smIn*100):0);
+  lipoWeeklyRateChart.data.datasets[1].data = wks.map(w=>w.lgIn>0?(w.lgB/w.lgIn*100):0);
+  lipoWeeklyRateChart.update();
+  lipoWeeklyCountChart.data.labels = wks.map(w=>w.week);
+  lipoWeeklyCountChart.data.datasets[0].data = wks.map(w=>w.smB);
+  lipoWeeklyCountChart.data.datasets[1].data = wks.map(w=>w.lgB);
+  lipoWeeklyCountChart.update();
+
+  document.getElementById('lipo-filter-note').textContent =
+    filtered.length < lipoDaily.length ? filtered.length+' days shown' : '';
 }
 </script>
 </body>
