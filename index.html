@@ -459,6 +459,13 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
 <!-- ═══════════════════ LIPO NODE ═══════════════════ -->
 <div id="node-lipo" class="node-content">
 
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchLIPOTab('itnv')">ITNV</button>
+    <button class="tab-btn" onclick="switchLIPOTab('jgp')">JGP</button>
+  </div>
+
+  <div id="lipo-tab-itnv" class="tab-content active">
+
   <div class="filter-bar" style="padding-left:32px">
     <span class="filter-label">Date Range</span>
     <input type="date" id="lipo-from" value="2026-07-09" min="2026-07-09" max="2026-09-08" onchange="filterLIPO()">
@@ -544,6 +551,16 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
       </div>
     </div>
   </div>
+  </div><!-- end lipo-tab-itnv -->
+
+  <div id="lipo-tab-jgp" class="tab-content">
+    <div style="padding:80px 32px;text-align:center;color:var(--text2)">
+      <div style="font-size:40px;margin-bottom:16px">📋</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">JGP Data Coming Soon</div>
+      <div style="font-size:13px">Drop the JGP LIPO inspection file to populate this tab.</div>
+    </div>
+  </div><!-- end lipo-tab-jgp -->
+
 </div><!-- end node-lipo -->X3587 FCM Lift-Up Gap Inspection Dashboard · Generated Sep 7, 2026 · USL: 50 µm · Vendors: Avary, ICT (Luxshare)</footer>
 
 <script>
@@ -1092,6 +1109,13 @@ buildIctTable();
 /* =====================================================================
    TAB & TOGGLE LOGIC
    ===================================================================== */
+function switchLIPOTab(id){
+  document.querySelectorAll('#node-lipo .tab-btn').forEach((b,i)=>
+    b.classList.toggle('active',['itnv','jgp'][i]===id));
+  document.querySelectorAll('#node-lipo .tab-content').forEach(c=>
+    c.classList.toggle('active',c.id==='lipo-tab-'+id));
+}
+
 function switchTab(id){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['avary','ict'][i]===id));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id==='tab-'+id));
