@@ -545,11 +545,11 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
       <div class="chart-wrap" style="height:240px"><canvas id="lipo-trend-chart"></canvas></div>
     </div>
 
-    <div class="section-title">Weekly Summary Table — LIPO IQC</div>
+    <div class="section-title">Daily Detail Table — LIPO IQC <span>(all inspection days, 7/9 onward)</span></div>
     <div class="table-wrap" style="margin-bottom:48px">
       <div class="table-controls">
-        <h3>LIPO Hotbar Tilt IQC — Weekly Data</h3>
-        <div style="font-size:11px;color:var(--text2)">OQC B- = 0 all weeks · B- = NG</div>
+        <h3>ITNV Hotbar Tilt IQC — Daily Data</h3>
+        <div style="font-size:11px;color:var(--text2)">OQC B- = 0 all days · B- = NG · Week 34 starts 8/17</div>
       </div>
       <div class="scroll-table">
         <table id="lipo-table"></table>
@@ -1707,35 +1707,44 @@ const lipoDailyChart = new Chart(document.getElementById('lipo-daily-chart'), {
 });
 
 /* LIPO TABLE */
-(function buildLipoTable(){
+function buildLipoTable(data){
+  data = data || lipoDaily;
   const hdr=`<thead><tr>
-    <th>Week</th>
+    <th>Date</th><th>Week</th>
     <th colspan="3" style="text-align:center;border-left:2px solid #e5e5ea">Small (O102) IQC</th>
     <th colspan="3" style="text-align:center;border-left:2px solid #e5e5ea">Large (O202) IQC</th>
     <th style="text-align:center;border-left:2px solid #e5e5ea">OQC B-</th>
   </tr><tr>
-    <th></th>
-    <th style="border-left:2px solid #e5e5ea">Input</th><th>B- Count</th><th>B- Rate</th>
-    <th style="border-left:2px solid #e5e5ea">Input</th><th>B- Count</th><th>B- Rate</th>
-    <th style="border-left:2px solid #e5e5ea">Both Sizes</th>
+    <th></th><th></th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>B-</th><th>Rate</th>
+    <th style="border-left:2px solid #e5e5ea">Input</th><th>B-</th><th>Rate</th>
+    <th style="border-left:2px solid #e5e5ea">Both</th>
   </tr></thead>`;
-  let rows='';
-  lipoWeekly.forEach(w=>{
-    const sr=(w.smIn>0?(w.smB/w.smIn*100):0).toFixed(4);
-    const lr=(w.lgIn>0?(w.lgB/w.lgIn*100):0).toFixed(4);
+  let rows=''; let lastWeek='';
+  data.forEach(d=>{
+    const sr=(d.smIn>0?(d.smB/d.smIn*100):0).toFixed(4);
+    const lr=(d.lgIn>0?(d.lgB/d.lgIn*100):0).toFixed(4);
+    const weekCell = d.week!==lastWeek
+      ? `<td style="font-weight:600;color:var(--text2);font-size:11px">${d.week}</td>`
+      : `<td style="color:var(--border)">·</td>`;
+    lastWeek = d.week;
+    const smBCell = d.smB>0?`<span style="color:var(--amber);font-weight:700">${d.smB}</span>`:'0';
+    const lgBCell = d.lgB>0?`<span style="color:var(--amber);font-weight:700">${d.lgB}</span>`:'0';
     rows+=`<tr>
-      <td><strong>${w.week}</strong></td>
-      <td style="border-left:2px solid #f0f0f0">${w.smIn.toLocaleString()}</td>
-      <td>${w.smB}</td>
-      <td class="${rateClass(sr)}">${sr}%</td>
-      <td style="border-left:2px solid #f0f0f0">${w.lgIn.toLocaleString()}</td>
-      <td>${w.lgB}</td>
-      <td class="${rateClass(lr)}">${lr}%</td>
+      <td><strong>${d.date}</strong></td>
+      ${weekCell}
+      <td style="border-left:2px solid #f0f0f0">${d.smIn?d.smIn.toLocaleString():'—'}</td>
+      <td>${smBCell}</td>
+      <td class="${rateClass(sr)}">${d.smIn?sr+'%':'—'}</td>
+      <td style="border-left:2px solid #f0f0f0">${d.lgIn?d.lgIn.toLocaleString():'—'}</td>
+      <td>${lgBCell}</td>
+      <td class="${rateClass(lr)}">${d.lgIn?lr+'%':'—'}</td>
       <td class="rate-zero" style="border-left:2px solid #f0f0f0;font-weight:700;color:var(--green)">0</td>
     </tr>`;
   });
   document.getElementById('lipo-table').innerHTML=hdr+'<tbody>'+rows+'</tbody>';
-})();
+}
+buildLipoTable();
 
 /* LIPO COMBINED TREND CHART */
 (function(){
@@ -1830,6 +1839,8 @@ function filterLIPO(){
 
   document.getElementById('lipo-filter-note').textContent =
     filtered.length < lipoDaily.length ? filtered.length+' days shown' : '';
+
+  buildLipoTable(filtered);
 }
 
 /* =====================================================================
