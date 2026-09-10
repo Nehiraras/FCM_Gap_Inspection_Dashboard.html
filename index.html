@@ -249,6 +249,11 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
     <div class="chart-wrap" style="height:260px"><canvas id="avary-volume"></canvas></div>
   </div>
 
+  <div class="chart-card" style="margin-bottom:16px">
+    <h3>NG vs Volume — Avary Daily (SM + LG Combined) <small>· bars=volume, line=OMM confirmed NG</small></h3>
+    <div class="chart-wrap" style="height:240px"><canvas id="avary-ng-vol"></canvas></div>
+  </div>
+
   <div class="section-title">Shift-Level Detail Data <span>(Day / Night per date)</span></div>
 
   <div class="table-wrap">
@@ -352,6 +357,11 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
     <div class="chart-wrap" style="height:220px"><canvas id="ict-volume"></canvas></div>
   </div>
 
+  <div class="chart-card" style="margin-bottom:16px">
+    <h3>NG vs Volume — ICT Daily (SM + LG Combined) <small>· bars=volume, line=CCD B- flagged (OMM NG=0 throughout)</small></h3>
+    <div class="chart-wrap" style="height:240px"><canvas id="ict-ng-vol"></canvas></div>
+  </div>
+
   <div class="section-title">Daily Data Table — ICT</div>
   <div class="table-wrap">
     <div class="table-controls">
@@ -441,6 +451,11 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
     <div class="chart-card" style="margin-bottom:16px">
       <h3>Daily Inspection Volume — D191 &amp; D192 <small>(units per day)</small></h3>
       <div class="chart-wrap" style="height:220px"><canvas id="lgd-volume"></canvas></div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:16px">
+      <h3>NG vs Volume — LGD Daily (D191 + D192 Combined) <small>· bars=volume, line=OMM confirmed NG</small></h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="lgd-ng-vol"></canvas></div>
     </div>
 
     <div class="section-title">Daily Data Table — LGD</div>
@@ -545,6 +560,11 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
       <div class="chart-wrap" style="height:240px"><canvas id="lipo-trend-chart"></canvas></div>
     </div>
 
+    <div class="chart-card" style="margin-bottom:16px">
+      <h3>NG vs Volume — ITNV Daily (SM + LG IQC Combined) <small>· bars=volume, line=IQC B- NG</small></h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="itnv-ng-vol"></canvas></div>
+    </div>
+
     <div class="section-title">Daily Detail Table — LIPO IQC <span>(all inspection days, 7/9 onward)</span></div>
     <div class="table-wrap" style="margin-bottom:48px">
       <div class="table-controls">
@@ -644,6 +664,11 @@ footer { text-align: center; padding: 24px; color: var(--text2); font-size: 12px
     <div class="chart-card" style="margin-bottom:16px">
       <h3>JGP IQC Combined Trend — Large OMM Confirmed NG per Day <small>· 5-day moving average</small></h3>
       <div class="chart-wrap" style="height:220px"><canvas id="jgp-trend"></canvas></div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:16px">
+      <h3>NG vs Volume — JGP Daily (LG IQC, OMM Confirmed) <small>· bars=LG volume, line=LG OMM confirmed NG</small></h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="jgp-ng-vol"></canvas></div>
     </div>
 
     <div class="section-title">Daily Data Table — JGP IQC</div>
@@ -1085,6 +1110,106 @@ const ictVolChart = new Chart(document.getElementById('ict-volume'), {
          ticks:{font:{size:10},callback:v=>(v/1000).toFixed(0)+'k'},grid:{color:'rgba(0,0,0,0.06)'}}
     }
   }
+});
+
+/* =====================================================================
+   NG vs VOLUME CHARTS — dual axis (volume bars right, NG line left)
+   ===================================================================== */
+const ngVolOpts = (volLabel) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: { mode: 'index', intersect: false },
+  plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+  scales: {
+    x: { ticks: { font: { size: 9 }, maxRotation: 60, minRotation: 45 }, grid: { color: 'rgba(0,0,0,0.04)' } },
+    yNG: {
+      position: 'left', beginAtZero: true,
+      title: { display: true, text: 'NG Count', font: { size: 10 }, color: '#636366' },
+      ticks: { font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.06)' }
+    },
+    yVol: {
+      position: 'right', beginAtZero: true,
+      title: { display: true, text: volLabel || 'Volume (units)', font: { size: 10 }, color: '#636366' },
+      ticks: { font: { size: 10 }, callback: v => (v/1000).toFixed(0)+'k' },
+      grid: { drawOnChartArea: false }
+    }
+  }
+});
+
+function ngVolDatasets(labels, vol, ng) {
+  return {
+    labels,
+    datasets: [
+      {
+        type: 'bar', label: 'Inspection Volume', data: vol,
+        backgroundColor: 'rgba(0,113,227,0.12)', borderColor: 'rgba(0,113,227,0.3)',
+        borderWidth: 1, yAxisID: 'yVol', order: 2, borderRadius: 2
+      },
+      {
+        type: 'line', label: 'NG Count', data: ng,
+        borderColor: 'rgba(255,59,48,0.9)', backgroundColor: 'rgba(255,59,48,0.08)',
+        borderWidth: 2.5,
+        pointRadius: ng.map(v => v > 0 ? 5 : 3),
+        pointBackgroundColor: ng.map(v => v > 0 ? 'rgba(255,59,48,1)' : 'rgba(48,209,88,0.7)'),
+        yAxisID: 'yNG', order: 1, tension: 0.3, fill: false
+      }
+    ]
+  };
+}
+
+// 1. Avary — combined SM+LG daily
+const avaryNgVolChart = new Chart(document.getElementById('avary-ng-vol'), {
+  type: 'bar',
+  data: ngVolDatasets(
+    avaryDaily.map(d => d.date),
+    avaryDaily.map(d => d.smIn + d.lgIn),
+    avaryDaily.map(d => d.smO + d.lgO)
+  ),
+  options: ngVolOpts('Volume (units)')
+});
+
+// 2. ICT — SM+LG combined daily
+const ictNgVolChart = new Chart(document.getElementById('ict-ng-vol'), {
+  type: 'bar',
+  data: ngVolDatasets(
+    ictSmData.map(d => d.date),
+    ictSmData.map((d,i) => d.input + (ictLgData.find(l => l.date === d.date)?.input || 0)),
+    ictSmData.map(d => d.bMinus)
+  ),
+  options: ngVolOpts('Volume (units)')
+});
+
+// 3. LGD — D191+D192 combined daily
+const lgdNgVolChart = new Chart(document.getElementById('lgd-ng-vol'), {
+  type: 'bar',
+  data: ngVolDatasets(
+    lgdD191.map(d => d.date),
+    lgdD191.map((d, i) => d.input + (lgdD192[i]?.input || 0)),
+    lgdD191.map((d, i) => d.omm + (lgdD192[i]?.omm || 0))
+  ),
+  options: ngVolOpts('Volume (units)')
+});
+
+// 4. LIPO ITNV — SM+LG IQC combined daily
+const itnvNgVolChart = new Chart(document.getElementById('itnv-ng-vol'), {
+  type: 'bar',
+  data: ngVolDatasets(
+    lipoDaily.map(d => d.date),
+    lipoDaily.map(d => d.smIn + d.lgIn),
+    lipoDaily.map(d => d.smB + d.lgB)
+  ),
+  options: ngVolOpts('Volume (units)')
+});
+
+// 5. LIPO JGP — LG IQC OMM confirmed
+const jgpNgVolChart = new Chart(document.getElementById('jgp-ng-vol'), {
+  type: 'bar',
+  data: ngVolDatasets(
+    jgpDaily.map(d => d.date),
+    jgpDaily.map(d => d.lgIn),
+    jgpDaily.map(d => d.lgOmmNg)
+  ),
+  options: ngVolOpts('LG Volume (units)')
 });
 
 /* =====================================================================
