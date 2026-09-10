@@ -1179,38 +1179,7 @@ const ictNgVolChart = new Chart(document.getElementById('ict-ng-vol'), {
   options: ngVolOpts('Volume (units)')
 });
 
-// 3. LGD — D191+D192 combined daily
-const lgdNgVolChart = new Chart(document.getElementById('lgd-ng-vol'), {
-  type: 'bar',
-  data: ngVolDatasets(
-    lgdD191.map(d => d.date),
-    lgdD191.map((d, i) => d.input + (lgdD192[i]?.input || 0)),
-    lgdD191.map((d, i) => d.omm + (lgdD192[i]?.omm || 0))
-  ),
-  options: ngVolOpts('Volume (units)')
-});
-
-// 4. LIPO ITNV — SM+LG IQC combined daily
-const itnvNgVolChart = new Chart(document.getElementById('itnv-ng-vol'), {
-  type: 'bar',
-  data: ngVolDatasets(
-    lipoDaily.map(d => d.date),
-    lipoDaily.map(d => d.smIn + d.lgIn),
-    lipoDaily.map(d => d.smB + d.lgB)
-  ),
-  options: ngVolOpts('Volume (units)')
-});
-
-// 5. LIPO JGP — LG IQC OMM confirmed
-const jgpNgVolChart = new Chart(document.getElementById('jgp-ng-vol'), {
-  type: 'bar',
-  data: ngVolDatasets(
-    jgpDaily.map(d => d.date),
-    jgpDaily.map(d => d.lgIn),
-    jgpDaily.map(d => d.lgOmmNg)
-  ),
-  options: ngVolOpts('LG Volume (units)')
-});
+// LGD, ITNV, JGP NG vs Volume charts created after their data arrays below
 
 /* =====================================================================
    TABLES
@@ -1471,6 +1440,17 @@ const lgdVolChart = new Chart(document.getElementById('lgd-volume'),{
 });
 
 /* LGD TABLE */
+// LGD NG vs Volume — inserted here after lgdD191/lgdD192 data is defined
+const lgdNgVolChart = new Chart(document.getElementById('lgd-ng-vol'), {
+  type: 'bar',
+  data: ngVolDatasets(
+    lgdD191.map(d => d.date),
+    lgdD191.map((d,i) => d.input + (lgdD192[i]?.input || 0)),
+    lgdD191.map((d,i) => d.omm + (lgdD192[i]?.omm || 0))
+  ),
+  options: ngVolOpts('Volume (units)')
+});
+
 (function buildLgdTable(){
   const hdr=`<thead><tr>
     <th>Date</th>
@@ -1832,6 +1812,17 @@ const lipoDailyChart = new Chart(document.getElementById('lipo-daily-chart'), {
 });
 
 /* LIPO TABLE */
+// ITNV NG vs Volume — inserted here after lipoDaily is defined
+const itnvNgVolChart = new Chart(document.getElementById('itnv-ng-vol'), {
+  type: 'bar',
+  data: ngVolDatasets(
+    lipoDaily.map(d => d.date),
+    lipoDaily.map(d => d.smIn + d.lgIn),
+    lipoDaily.map(d => d.smB + d.lgB)
+  ),
+  options: ngVolOpts('Volume (units)')
+});
+
 function buildLipoTable(data){
   data = data || lipoDaily;
   const hdr=`<thead><tr>
@@ -2034,6 +2025,17 @@ const jgpDaily = [
   {date:"09/07",smIn:22797,smKnNg:0,smOmmNg:0,lgIn:22514,lgKnNg:0,lgOmmNg:0,smOqcIn:21623,smOqcNg:0,lgOqcIn:24916,lgOqcNg:0},
   {date:"09/08",smIn:25912,smKnNg:0,smOmmNg:0,lgIn:24199,lgKnNg:6,lgOmmNg:0,smOqcIn:24180,smOqcNg:0,lgOqcIn:23941,lgOqcNg:0},
 ];
+
+// JGP NG vs Volume — inserted here after jgpDaily is defined
+const jgpNgVolChart = new Chart(document.getElementById('jgp-ng-vol'), {
+  type: 'bar',
+  data: ngVolDatasets(
+    jgpDaily.map(d => d.date),
+    jgpDaily.map(d => d.lgIn),
+    jgpDaily.map(d => d.lgOmmNg)
+  ),
+  options: ngVolOpts('LG Volume (units)')
+});
 
 /* JGP WEEKLY AGGREGATION */
 function jgpWeekLabel(dateStr) {
